@@ -19,6 +19,8 @@ import {
   Booking, 
   Review, 
   KycSubmission,
+  PaymentTransaction,
+  CreatePaymentInput,
   AppNotification, 
   SubmitKycInput 
 } from "./types";
@@ -362,4 +364,56 @@ export function subscribeToNotifications(
       if (onError) onError(err);
     }
   );
+}
+// ==========================================
+// 7. Payment & Billing Operations
+// ==========================================
+
+/**
+ * Initialize and process a simulated payment for a booking
+ */
+export async function processPayment(input: CreatePaymentInput): Promise<PaymentTransaction> {
+  const paymentRef = collection(db, "payments");
+  const newPaymentDoc = doc(paymentRef);
+  const receiptNumber = `REC-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+  const transactionPayload: PaymentTransaction = {
+    transactionId: newPaymentDoc.id,
+    bookingId: input.bookingId,
+    customerId: input.customerId,
+    workerId: input.workerId,
+    amount: input.amount,
+    currency: "INR",
+    method: input.method,
+    status: "completed", // Simulated instant settlement
+    receiptNumber,
+    createdAt: serverTimestamp() as Timestamp,
+    completedAt: serverTimestamp() as Timestamp,
+  };
+
+  await setDoc(newPaymentDoc, transactionPayload);
+
+  // Automatically update the booking status to confirmed upon successful settlement
+  const bookingRef = doc(db, "bookings", input.bookingId);
+  await updateDoc(bookingRef, {
+    status: "confirmed",
+    updatedAt: serverTimestamp(),
+  });
+
+  return transactionPayload;
+}
+
+/**
+ * Retrieve transaction history for a booking
+ */
+export async function getPaymentByBooking(bookingId: string): Promise<PaymentTransaction | null> {
+  const paymentRef = collection(db, "payments");
+  const q = query(paymentRef, where("bookingId", "==", bookingId));
+  const snapshot = await getDocs(q);
+
+  if (snapshot.empty) {
+    return null;
+  }
+
+  return snapshot.docs[0].data() as PaymentTransaction;
 }

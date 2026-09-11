@@ -128,3 +128,31 @@ export interface SubmitKycInput {
   documentNumberMasked: string;
   documentFileUrl: string;
 }
+// ==========================================
+// 7. Payment & Transaction Types
+// ==========================================
+
+export type PaymentStatus = "pending" | "completed" | "failed" | "refunded";
+export type PaymentMethod = "card" | "upi" | "netbanking" | "wallet" | "cash";
+
+export interface PaymentTransaction {
+  transactionId: string;
+  bookingId: string;
+  customerId: string;
+  workerId: string;
+  amount: number;
+  currency: "INR";
+  method: PaymentMethod;
+  status: PaymentStatus;
+  receiptNumber: string;
+  createdAt: Timestamp;
+  completedAt?: Timestamp;
+}
+
+export interface CreatePaymentInput {
+  bookingId: string;
+  customerId: string;
+  workerId: string;
+  amount: number;
+  method: PaymentMethod;
+}
