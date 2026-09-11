@@ -7,6 +7,8 @@ import {
   updateDoc,
   query,
   where,
+  onSnapshot,
+  Unsubscribe,
   serverTimestamp,
   Timestamp,
 } from "firebase/firestore";
@@ -16,7 +18,8 @@ import {
   ServiceItem, 
   Booking, 
   Review, 
-  KycSubmission, 
+  KycSubmission,
+  AppNotification, 
   SubmitKycInput 
 } from "./types";
 
@@ -307,4 +310,56 @@ export async function reviewKycSubmission(
     verificationStatus: decision === "approved" ? "verified" : "rejected",
     updatedAt: serverTimestamp(),
   });
+}
+// ==========================================
+// 6. Real-Time Notifications
+// ==========================================
+
+/**
+ * Dispatch an in-app alert to a specific user
+ */
+export async function sendNotification(
+  userId: string,
+  title: string,
+  message: string,
+  type: "booking" | "status_update" | "system"
+): Promise<string> {
+  const notifRef = collection(db, "notifications");
+  const newNotifDoc = doc(notifRef);
+
+  const payload: AppNotification = {
+    notificationId: newNotifDoc.id,
+    userId,
+    title,
+    message,
+    type,
+    read: false,
+    createdAt: serverTimestamp() as Timestamp,
+  };
+
+  await setDoc(newNotifDoc, payload);
+  return newNotifDoc.id;
+}
+
+/**
+ * Listen in real time for any alerts sent to a specific user
+ */
+export function subscribeToNotifications(
+  userId: string,
+  onUpdate: (notifications: AppNotification[]) => void,
+  onError?: (error: Error) => void
+): Unsubscribe {
+  const notifRef = collection(db, "notifications");
+  const q = query(notifRef, where("userId", "==", userId));
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const items = snapshot.docs.map((d) => d.data() as AppNotification);
+      onUpdate(items);
+    },
+    (err) => {
+      if (onError) onError(err);
+    }
+  );
 }
