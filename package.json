@@ -1,0 +1,20 @@
+{
+  "name": "smartmatch-engine",
+  "version": "1.0.0",
+  "description": "Standalone SmartMatch scoring/ranking engine (isolated module, no Firebase/UI deps)",
+  "private": true,
+  "main": "smartmatch/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "demo": "ts-node smartmatch/demo.ts"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.14.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  }
+}
