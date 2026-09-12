@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const services = [
   { name: "Electrician", icon: "⚡" },
   { name: "Plumber", icon: "🔧" },
@@ -102,7 +104,7 @@ export default function Home() {
       {/* Header */}
       <header className="border-b border-gray-100 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-700 text-lg font-bold text-white">
               S
             </div>
@@ -111,20 +113,29 @@ export default function Home() {
               <h1 className="text-lg font-bold text-gray-900">
                 Sahakar Seva
               </h1>
+
               <p className="text-xs text-gray-500">
                 Trusted services, powered by cooperation.
               </p>
             </div>
-          </div>
+          </Link>
 
           <nav className="hidden items-center gap-8 text-sm font-medium text-gray-600 md:flex">
-            <a href="#" className="text-green-700">
+            <Link href="/" className="text-green-700">
               Home
-            </a>
-            <a href="#" className="hover:text-green-700">
+            </Link>
+
+            <Link
+              href="/customer/services"
+              className="hover:text-green-700"
+            >
               Services
-            </a>
-            <a href="#" className="hover:text-green-700">
+            </Link>
+
+            <a
+              href="#how-it-works"
+              className="hover:text-green-700"
+            >
               How it works
             </a>
           </nav>
@@ -171,6 +182,7 @@ export default function Home() {
             <div className="mt-8 flex max-w-3xl flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm sm:flex-row">
               <div className="flex flex-1 items-center gap-3 px-3">
                 <SearchIcon />
+
                 <input
                   type="text"
                   placeholder="What service do you need?"
@@ -198,20 +210,25 @@ export default function Home() {
             <h3 className="text-2xl font-bold text-gray-900">
               Popular Services
             </h3>
+
             <p className="mt-1 text-sm text-gray-500">
               Get help from verified professionals near you.
             </p>
           </div>
 
-          <button className="hidden text-sm font-semibold text-green-700 sm:block">
+          <Link
+            href="/customer/services"
+            className="hidden text-sm font-semibold text-green-700 sm:block"
+          >
             View all →
-          </button>
+          </Link>
         </div>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           {services.map((service) => (
-            <button
+            <Link
               key={service.name}
+              href="/customer/services"
               className="rounded-2xl border border-gray-200 bg-white p-5 text-left transition hover:-translate-y-0.5 hover:border-green-300 hover:shadow-sm"
             >
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-green-50 text-2xl">
@@ -221,7 +238,7 @@ export default function Home() {
               <p className="text-sm font-semibold text-gray-900">
                 {service.name}
               </p>
-            </button>
+            </Link>
           ))}
         </div>
       </section>
@@ -233,6 +250,7 @@ export default function Home() {
             <h3 className="text-2xl font-bold text-gray-900">
               Recommended for you
             </h3>
+
             <p className="mt-1 text-sm text-gray-500">
               Trusted workers matched based on service, location and
               availability.
@@ -276,18 +294,27 @@ export default function Home() {
                 <div className="mt-5 grid grid-cols-3 gap-3 border-y border-gray-100 py-4">
                   <div>
                     <p className="text-xs text-gray-400">Rating</p>
-                    <p className="mt-1 text-sm font-semibold">★ {worker.rating}</p>
+
+                    <p className="mt-1 text-sm font-semibold">
+                      ★ {worker.rating}
+                    </p>
                   </div>
 
                   <div>
-                    <p className="text-xs text-gray-400">Experience</p>
+                    <p className="text-xs text-gray-400">
+                      Experience
+                    </p>
+
                     <p className="mt-1 text-sm font-semibold">
                       {worker.experience}
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-xs text-gray-400">Distance</p>
+                    <p className="text-xs text-gray-400">
+                      Distance
+                    </p>
+
                     <p className="mt-1 text-sm font-semibold">
                       {worker.distance}
                     </p>
@@ -296,7 +323,10 @@ export default function Home() {
 
                 <div className="mt-4 flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-gray-400">Starting from</p>
+                    <p className="text-xs text-gray-400">
+                      Starting from
+                    </p>
+
                     <p className="text-lg font-bold text-gray-900">
                       {worker.price}
                     </p>
@@ -316,12 +346,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Trust */}
-      <section className="mx-auto max-w-7xl px-6 py-16">
+      {/* How it works / Trust */}
+      <section
+        id="how-it-works"
+        className="mx-auto max-w-7xl scroll-mt-20 px-6 py-16"
+      >
         <div className="mb-8 text-center">
           <h3 className="text-2xl font-bold text-gray-900">
             Why choose Sahakar Seva?
           </h3>
+
           <p className="mt-2 text-sm text-gray-500">
             Built around trust, transparency and local cooperation.
           </p>
@@ -329,10 +363,26 @@ export default function Home() {
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            ["✓", "Verified workers", "Connect with trusted and verified service providers."],
-            ["₹", "Transparent pricing", "Know the starting price before booking."],
-            ["⌖", "Local service providers", "Find skilled workers available near you."],
-            ["✓", "Secure booking", "Simple and reliable service booking experience."],
+            [
+              "✓",
+              "Verified workers",
+              "Connect with trusted and verified service providers.",
+            ],
+            [
+              "₹",
+              "Transparent pricing",
+              "Know the starting price before booking.",
+            ],
+            [
+              "⌖",
+              "Local service providers",
+              "Find skilled workers available near you.",
+            ],
+            [
+              "✓",
+              "Secure booking",
+              "Simple and reliable service booking experience.",
+            ],
           ].map(([icon, title, description]) => (
             <div
               key={title}
@@ -342,7 +392,10 @@ export default function Home() {
                 {icon}
               </div>
 
-              <h4 className="mt-4 font-semibold text-gray-900">{title}</h4>
+              <h4 className="mt-4 font-semibold text-gray-900">
+                {title}
+              </h4>
+
               <p className="mt-2 text-sm leading-6 text-gray-500">
                 {description}
               </p>
@@ -355,6 +408,7 @@ export default function Home() {
       <footer className="border-t border-gray-100 bg-gray-50">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-6 py-7 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 Sahakar Seva</p>
+
           <p>Trusted services, powered by cooperation.</p>
         </div>
       </footer>

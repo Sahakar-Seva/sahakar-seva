@@ -1,3 +1,7 @@
+"use client";
+
+import Link from "next/link";
+
 function BellIcon() {
   return (
     <svg
@@ -174,7 +178,7 @@ export default function AdminDashboard() {
       {/* Header */}
       <header className="border-b border-gray-100 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
+          <Link href="/admin/dashboard" className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-700 text-lg font-bold text-white">
               S
             </div>
@@ -185,31 +189,31 @@ export default function AdminDashboard() {
                 Cooperative services platform
               </p>
             </div>
-          </div>
+          </Link>
 
           <nav className="hidden items-center gap-7 text-sm font-medium text-gray-600 lg:flex">
-            <a
+            <Link
               href="/admin/dashboard"
               className="font-semibold text-green-700"
             >
               Dashboard
-            </a>
+            </Link>
 
-            <a href="#" className="hover:text-green-700">
+            <Link href="/admin/workers" className="hover:text-green-700">
               Workers
-            </a>
+            </Link>
 
-            <a href="#" className="hover:text-green-700">
+            <Link href="/admin/customer" className="hover:text-green-700">
               Customers
-            </a>
+            </Link>
 
-            <a href="#" className="hover:text-green-700">
+            <Link href="/admin/bookings" className="hover:text-green-700">
               Bookings
-            </a>
+            </Link>
 
-            <a href="#" className="hover:text-green-700">
+            <Link href="/admin/services" className="hover:text-green-700">
               Services
-            </a>
+            </Link>
           </nav>
 
           <div className="flex items-center gap-4">
@@ -219,7 +223,9 @@ export default function AdminDashboard() {
 
             <div className="hidden text-right sm:block">
               <p className="text-sm font-semibold">Admin</p>
-              <p className="text-xs text-gray-500">Platform Administrator</p>
+              <p className="text-xs text-gray-500">
+                Platform Administrator
+              </p>
             </div>
 
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-sm font-bold text-green-800">
@@ -253,16 +259,18 @@ export default function AdminDashboard() {
               <span>▾</span>
             </button>
 
-            <button className="flex items-center gap-2 rounded-xl bg-green-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-800">
+            <Link
+              href="/admin/bookings"
+              className="flex items-center gap-2 rounded-xl bg-green-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-800"
+            >
               <PlusIcon />
               Quick Action
-            </button>
+            </Link>
           </div>
         </div>
 
         {/* Summary Cards */}
         <div className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Workers */}
           <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-700">
@@ -283,7 +291,6 @@ export default function AdminDashboard() {
             </p>
           </div>
 
-          {/* Customers */}
           <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-50 text-gray-700">
@@ -304,7 +311,6 @@ export default function AdminDashboard() {
             </p>
           </div>
 
-          {/* Bookings */}
           <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-700">
@@ -325,7 +331,6 @@ export default function AdminDashboard() {
             </p>
           </div>
 
-          {/* Completed */}
           <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-50 text-gray-700">
@@ -351,7 +356,6 @@ export default function AdminDashboard() {
 
         {/* Main Grid */}
         <div className="mt-7 grid gap-7 lg:grid-cols-[1fr_360px]">
-          {/* Booking Overview */}
           <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
@@ -362,9 +366,12 @@ export default function AdminDashboard() {
                 </p>
               </div>
 
-              <button className="text-sm font-semibold text-green-700 hover:text-green-800">
+              <Link
+                href="/admin/reports"
+                className="text-sm font-semibold text-green-700 hover:text-green-800"
+              >
                 View Reports
-              </button>
+              </Link>
             </div>
 
             <div className="mt-8 grid grid-cols-7 items-end gap-3">
@@ -455,17 +462,23 @@ export default function AdminDashboard() {
                     </p>
                   </div>
 
-                  <button className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium hover:bg-gray-50">
+                  <Link
+                    href="/admin/workers"
+                    className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium hover:bg-gray-50"
+                  >
                     Review
-                  </button>
+                  </Link>
                 </div>
               ))}
             </div>
 
-            <button className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-green-50 px-4 py-3 text-sm font-semibold text-green-700 hover:bg-green-100">
+            <Link
+              href="/admin/workers"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-green-50 px-4 py-3 text-sm font-semibold text-green-700 hover:bg-green-100"
+            >
               View All Requests
               <ArrowIcon />
-            </button>
+            </Link>
           </section>
         </div>
 
@@ -480,10 +493,13 @@ export default function AdminDashboard() {
               </p>
             </div>
 
-            <button className="flex items-center gap-2 text-sm font-semibold text-green-700 hover:text-green-800">
+            <Link
+              href="/admin/bookings"
+              className="flex items-center gap-2 text-sm font-semibold text-green-700 hover:text-green-800"
+            >
               View All
               <ArrowIcon />
-            </button>
+            </Link>
           </div>
 
           <div className="hidden overflow-x-auto md:block">
@@ -543,7 +559,6 @@ export default function AdminDashboard() {
             </table>
           </div>
 
-          {/* Mobile */}
           <div className="divide-y divide-gray-100 md:hidden">
             {recentBookings.map((booking) => (
               <div
@@ -582,7 +597,6 @@ export default function AdminDashboard() {
 
         {/* Popular Services + Activity */}
         <div className="mt-7 grid gap-7 lg:grid-cols-2">
-          {/* Popular Services */}
           <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div>
               <h3 className="text-lg font-bold">Popular Services</h3>
@@ -620,7 +634,6 @@ export default function AdminDashboard() {
             </div>
           </section>
 
-          {/* Platform Activity */}
           <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div>
               <h3 className="text-lg font-bold">Platform Activity</h3>
@@ -709,7 +722,10 @@ export default function AdminDashboard() {
           </div>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <button className="rounded-xl border border-gray-200 p-5 text-left hover:border-green-200 hover:bg-green-50">
+            <Link
+              href="/admin/workers"
+              className="rounded-xl border border-gray-200 p-5 text-left hover:border-green-200 hover:bg-green-50"
+            >
               <WorkerIcon />
 
               <p className="mt-4 text-sm font-semibold">
@@ -719,9 +735,12 @@ export default function AdminDashboard() {
               <p className="mt-1 text-xs text-gray-500">
                 Review pending applications
               </p>
-            </button>
+            </Link>
 
-            <button className="rounded-xl border border-gray-200 p-5 text-left hover:border-green-200 hover:bg-green-50">
+            <Link
+              href="/admin/customer"
+              className="rounded-xl border border-gray-200 p-5 text-left hover:border-green-200 hover:bg-green-50"
+            >
               <UsersIcon />
 
               <p className="mt-4 text-sm font-semibold">
@@ -731,9 +750,12 @@ export default function AdminDashboard() {
               <p className="mt-1 text-xs text-gray-500">
                 View and manage accounts
               </p>
-            </button>
+            </Link>
 
-            <button className="rounded-xl border border-gray-200 p-5 text-left hover:border-green-200 hover:bg-green-50">
+            <Link
+              href="/admin/bookings"
+              className="rounded-xl border border-gray-200 p-5 text-left hover:border-green-200 hover:bg-green-50"
+            >
               <BookingIcon />
 
               <p className="mt-4 text-sm font-semibold">
@@ -743,9 +765,12 @@ export default function AdminDashboard() {
               <p className="mt-1 text-xs text-gray-500">
                 Monitor platform bookings
               </p>
-            </button>
+            </Link>
 
-            <button className="rounded-xl border border-gray-200 p-5 text-left hover:border-green-200 hover:bg-green-50">
+            <Link
+              href="/admin/services"
+              className="rounded-xl border border-gray-200 p-5 text-left hover:border-green-200 hover:bg-green-50"
+            >
               <PlusIcon />
 
               <p className="mt-4 text-sm font-semibold">
@@ -755,7 +780,7 @@ export default function AdminDashboard() {
               <p className="mt-1 text-xs text-gray-500">
                 Create a new service category
               </p>
-            </button>
+            </Link>
           </div>
         </section>
 

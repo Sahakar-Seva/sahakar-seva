@@ -1,15 +1,222 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+
+type Booking = {
+  id?: string;
+  bookingId?: string;
+  serviceId?: string;
+  serviceName?: string;
+  workerId?: string;
+  workerName?: string;
+  price?: number;
+  date?: string;
+  time?: string;
+  status?: string;
+  location?: string;
+};
+
+const services = [
+  {
+    id: "electrician",
+    name: "Electrical Repair",
+    icon: "⚡",
+    category: "Repairs",
+    duration: "1–2 hours",
+    price: 299,
+  },
+  {
+    id: "plumber",
+    name: "Plumbing",
+    icon: "🔧",
+    category: "Repairs",
+    duration: "1–2 hours",
+    price: 249,
+  },
+  {
+    id: "home-cleaning",
+    name: "Home Cleaning",
+    icon: "🧹",
+    category: "Cleaning",
+    duration: "2–3 hours",
+    price: 499,
+  },
+  {
+    id: "carpenter",
+    name: "Carpentry",
+    icon: "🪚",
+    category: "Repairs",
+    duration: "1–2 hours",
+    price: 399,
+  },
+  {
+    id: "appliance-repair",
+    name: "Appliance Repair",
+    icon: "🔧",
+    category: "Repairs",
+    duration: "1–2 hours",
+    price: 349,
+  },
+  {
+    id: "painting",
+    name: "Painting",
+    icon: "🎨",
+    category: "Home Services",
+    duration: "3–5 hours",
+    price: 699,
+  },
+  {
+    id: "gardening",
+    name: "Gardening",
+    icon: "🌱",
+    category: "Home Services",
+    duration: "1–2 hours",
+    price: 299,
+  },
+  {
+    id: "ac-service",
+    name: "AC Service",
+    icon: "❄️",
+    category: "Appliance Services",
+    duration: "1–2 hours",
+    price: 449,
+  },
+  {
+    id: "pest-control",
+    name: "Pest Control",
+    icon: "🛡️",
+    category: "Home Services",
+    duration: "1–2 hours",
+    price: 599,
+  },
+  {
+    id: "fan-installation",
+    name: "Fan Installation",
+    icon: "🌀",
+    category: "Installation",
+    duration: "1 hour",
+    price: 199,
+  },
+  {
+    id: "washing-machine-repair",
+    name: "Washing Machine Repair",
+    icon: "🧺",
+    category: "Appliance Services",
+    duration: "1–2 hours",
+    price: 399,
+  },
+  {
+    id: "furniture-assembly",
+    name: "Furniture Assembly",
+    icon: "🪑",
+    category: "Home Services",
+    duration: "1–2 hours",
+    price: 349,
+  },
+];
 
 export default function BookingDetailsPage() {
   const router = useRouter();
   const params = useParams();
 
   const bookingId =
-    typeof params.id === "string" ? params.id : "SS-2026-00124";
+    typeof params.id === "string" ? params.id : "";
 
-  const isCompleted = bookingId === "SS-2026-00118";
+  const [booking, setBooking] = useState<Booking | null>(null);
+
+  useEffect(() => {
+    const storedBookings = localStorage.getItem("sahakar-seva-bookings");
+
+    if (!storedBookings) return;
+
+    try {
+      const bookings: Booking[] = JSON.parse(storedBookings);
+
+      const foundBooking = bookings.find(
+        (item) =>
+          item.id === bookingId ||
+          item.bookingId === bookingId
+      );
+
+      if (foundBooking) {
+        setBooking(foundBooking);
+      }
+    } catch (error) {
+      console.error("Failed to load booking:", error);
+    }
+  }, [bookingId]);
+
+  const service =
+    services.find(
+      (item) =>
+        item.id === booking?.serviceId ||
+        item.name === booking?.serviceName
+    ) || services[0];
+
+  const serviceName =
+    booking?.serviceName || service.name;
+
+  const workerName =
+    booking?.workerName || "Rahul Sharma";
+
+  const price =
+    booking?.price || service.price;
+
+  const date =
+    booking?.date || "11 September 2026";
+
+  const time =
+    booking?.time || "10:00 AM";
+
+  const isCompleted =
+    booking?.status?.toLowerCase() === "completed" ||
+    bookingId === "SS-2026-00118";
+
+  const handleCancel = () => {
+    const storedBookings = localStorage.getItem(
+      "sahakar-seva-bookings"
+    );
+
+    if (!storedBookings) return;
+
+    try {
+      const bookings: Booking[] = JSON.parse(storedBookings);
+
+      const updatedBookings = bookings.map((item) => {
+        if (
+          item.id === bookingId ||
+          item.bookingId === bookingId
+        ) {
+          return {
+            ...item,
+            status: "Cancelled",
+          };
+        }
+
+        return item;
+      });
+
+      localStorage.setItem(
+        "sahakar-seva-bookings",
+        JSON.stringify(updatedBookings)
+      );
+
+      setBooking((current) =>
+        current
+          ? {
+              ...current,
+              status: "Cancelled",
+            }
+          : current
+      );
+    } catch (error) {
+      console.error("Failed to cancel booking:", error);
+    }
+  };
+
+  const isCancelled =
+    booking?.status?.toLowerCase() === "cancelled";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -35,7 +242,6 @@ export default function BookingDetailsPage() {
         </div>
       </header>
 
-      {/* Main */}
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         {/* Back */}
         <button
@@ -53,7 +259,7 @@ export default function BookingDetailsPage() {
             </p>
 
             <h1 className="mt-1 text-3xl font-bold text-gray-900">
-              Electrical Repair
+              {serviceName}
             </h1>
 
             <p className="mt-2 text-sm text-gray-500">
@@ -63,24 +269,29 @@ export default function BookingDetailsPage() {
 
           <span
             className={`w-fit rounded-full border px-4 py-2 text-sm font-medium ${
-              isCompleted
+              isCancelled
+                ? "border-red-200 bg-red-50 text-red-700"
+                : isCompleted
                 ? "border-green-200 bg-green-50 text-green-700"
                 : "border-blue-200 bg-blue-50 text-blue-700"
             }`}
           >
-            {isCompleted ? "Completed" : "Upcoming"}
+            {isCancelled
+              ? "Cancelled"
+              : isCompleted
+              ? "Completed"
+              : "Upcoming"}
           </span>
         </div>
 
         {/* Tracking */}
-        {!isCompleted && (
+        {!isCompleted && !isCancelled && (
           <div className="mt-8 rounded-2xl border bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">
               Booking Status
             </h2>
 
             <div className="mt-8">
-              {/* Step 1 */}
               <div className="flex gap-4">
                 <div className="flex flex-col items-center">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-600 text-sm font-bold text-white">
@@ -101,7 +312,6 @@ export default function BookingDetailsPage() {
                 </div>
               </div>
 
-              {/* Step 2 */}
               <div className="flex gap-4">
                 <div className="flex flex-col items-center">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-600 text-sm font-bold text-white">
@@ -117,12 +327,11 @@ export default function BookingDetailsPage() {
                   </p>
 
                   <p className="mt-1 text-sm text-gray-500">
-                    Rahul Sharma has been assigned to your service.
+                    {workerName} has been assigned to your service.
                   </p>
                 </div>
               </div>
 
-              {/* Step 3 */}
               <div className="flex gap-4">
                 <div className="flex flex-col items-center">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-green-600 bg-white text-sm font-bold text-green-600">
@@ -138,12 +347,11 @@ export default function BookingDetailsPage() {
                   </p>
 
                   <p className="mt-1 text-sm text-gray-500">
-                    Your service is scheduled for 11 September at 10:00 AM.
+                    Your service is scheduled for {date} at {time}.
                   </p>
                 </div>
               </div>
 
-              {/* Step 4 */}
               <div className="flex gap-4">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-gray-200 bg-white text-sm font-bold text-gray-400">
                   4
@@ -163,8 +371,29 @@ export default function BookingDetailsPage() {
           </div>
         )}
 
-        {/* Completed Status */}
-        {isCompleted && (
+        {/* Cancelled */}
+        {isCancelled && (
+          <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-600 text-xl text-white">
+                ×
+              </div>
+
+              <div>
+                <h2 className="font-semibold text-gray-900">
+                  Booking Cancelled
+                </h2>
+
+                <p className="mt-1 text-sm text-gray-600">
+                  This booking has been cancelled.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Completed */}
+        {isCompleted && !isCancelled && (
           <div className="mt-8 rounded-2xl border border-green-200 bg-green-50 p-6">
             <div className="flex items-start gap-4">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-600 text-xl text-white">
@@ -177,16 +406,15 @@ export default function BookingDetailsPage() {
                 </h2>
 
                 <p className="mt-1 text-sm text-gray-600">
-                  Your Electrical Repair service was successfully completed.
+                  Your {serviceName} service was successfully completed.
                 </p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Details Grid */}
+        {/* Details */}
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Main Details */}
           <div className="space-y-6 lg:col-span-2">
             {/* Service */}
             <div className="rounded-2xl border bg-white p-6 shadow-sm">
@@ -196,16 +424,16 @@ export default function BookingDetailsPage() {
 
               <div className="mt-5 flex items-center gap-4">
                 <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-green-100 text-xl">
-                  ⚡
+                  {service.icon}
                 </div>
 
                 <div>
                   <p className="font-semibold text-gray-900">
-                    Electrical Repair
+                    {serviceName}
                   </p>
 
                   <p className="mt-1 text-sm text-gray-500">
-                    Repairs • 1–2 hours
+                    {service.category} • {service.duration}
                   </p>
                 </div>
               </div>
@@ -216,10 +444,10 @@ export default function BookingDetailsPage() {
                 </p>
 
                 <ul className="mt-3 space-y-2 text-sm text-gray-700">
-                  <li>✓ Electrical inspection</li>
-                  <li>✓ Minor electrical repairs</li>
-                  <li>✓ Switch and socket checking</li>
-                  <li>✓ Basic safety inspection</li>
+                  <li>✓ Professional service visit</li>
+                  <li>✓ Inspection and basic assessment</li>
+                  <li>✓ Verified cooperative worker</li>
+                  <li>✓ Service completion support</li>
                 </ul>
               </div>
             </div>
@@ -233,16 +461,20 @@ export default function BookingDetailsPage() {
               <div className="mt-5 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100 font-semibold text-green-700">
-                    RS
+                    {workerName
+                      .split(" ")
+                      .map((name) => name[0])
+                      .join("")
+                      .slice(0, 2)}
                   </div>
 
                   <div>
                     <p className="font-semibold text-gray-900">
-                      Rahul Sharma
+                      {workerName}
                     </p>
 
                     <p className="mt-1 text-sm text-gray-500">
-                      Verified Electrician
+                      Verified Service Provider
                     </p>
 
                     <p className="mt-1 text-sm text-gray-600">
@@ -251,9 +483,11 @@ export default function BookingDetailsPage() {
                   </div>
                 </div>
 
-                {!isCompleted && (
+                {!isCompleted && !isCancelled && (
                   <button
-                    onClick={() => alert("Contact feature coming soon")}
+                    onClick={() =>
+                      alert("Contact feature coming soon")
+                    }
                     className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
                     Contact
@@ -275,7 +509,7 @@ export default function BookingDetailsPage() {
 
                 <div>
                   <p className="font-medium text-gray-900">
-                    Flat 204, Green Residency
+                    {booking?.location || "Flat 204, Green Residency"}
                   </p>
 
                   <p className="mt-1 text-sm text-gray-600">
@@ -296,7 +530,7 @@ export default function BookingDetailsPage() {
                   <p className="text-xs text-gray-500">Date</p>
 
                   <p className="mt-1 font-medium text-gray-900">
-                    Friday, 11 September 2026
+                    {date}
                   </p>
                 </div>
 
@@ -304,7 +538,7 @@ export default function BookingDetailsPage() {
                   <p className="text-xs text-gray-500">Time</p>
 
                   <p className="mt-1 font-medium text-gray-900">
-                    10:00 AM
+                    {time}
                   </p>
                 </div>
               </div>
@@ -313,7 +547,7 @@ export default function BookingDetailsPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Price */}
+            {/* Payment */}
             <div className="rounded-2xl border bg-white p-6 shadow-sm">
               <h2 className="font-semibold text-gray-900">
                 Payment Summary
@@ -326,7 +560,7 @@ export default function BookingDetailsPage() {
                   </span>
 
                   <span className="font-medium text-gray-900">
-                    ₹299
+                    ₹{price}
                   </span>
                 </div>
 
@@ -347,7 +581,7 @@ export default function BookingDetailsPage() {
                     </span>
 
                     <span className="text-xl font-bold text-gray-900">
-                      ₹299
+                      ₹{price}
                     </span>
                   </div>
                 </div>
@@ -355,7 +589,7 @@ export default function BookingDetailsPage() {
             </div>
 
             {/* Actions */}
-            {!isCompleted && (
+            {!isCompleted && !isCancelled && (
               <div className="rounded-2xl border bg-white p-6 shadow-sm">
                 <h2 className="font-semibold text-gray-900">
                   Manage Booking
@@ -365,7 +599,11 @@ export default function BookingDetailsPage() {
                   <button
                     onClick={() =>
                       router.push(
-                        `/customer/book/schedule?worker=1&service=1`
+                        `/customer/book/schedule?worker=${
+                          booking?.workerId || "1"
+                        }&service=${
+                          booking?.serviceId || service.id
+                        }`
                       )
                     }
                     className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
@@ -374,9 +612,7 @@ export default function BookingDetailsPage() {
                   </button>
 
                   <button
-                    onClick={() =>
-                      alert("Cancellation feature coming soon")
-                    }
+                    onClick={handleCancel}
                     className="w-full rounded-lg border border-red-200 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50"
                   >
                     Cancel Booking
@@ -385,19 +621,23 @@ export default function BookingDetailsPage() {
               </div>
             )}
 
-            {/* Completed Review */}
-            {isCompleted && (
+            {/* Review */}
+            {isCompleted && !isCancelled && (
               <div className="rounded-2xl border bg-white p-6 shadow-sm">
                 <h2 className="font-semibold text-gray-900">
                   How was your service?
                 </h2>
 
                 <p className="mt-2 text-sm text-gray-500">
-                  Share your experience with Rahul Sharma.
+                  Share your experience with {workerName}.
                 </p>
 
                 <button
-                  onClick={() => router.push("/customer/review/1")}
+                  onClick={() =>
+                    router.push(
+                      `/customer/review/${bookingId}`
+                    )
+                  }
                   className="mt-5 w-full rounded-lg bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700"
                 >
                   Rate & Review

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 const categories = [
   {
@@ -432,10 +433,16 @@ export default function CustomerServices() {
                   <p className="text-xs text-gray-500">
                     {service.workers} verified workers
                   </p>
+                  <Link
+  href={`/customer/services/${service.name
+    .toLowerCase()
+    .replace(/\s+/g, "-")}`}
+  className="rounded-xl bg-green-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800"
+>
+  View service
+</Link>
 
-                  <button className="rounded-xl bg-green-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800">
-                    View service
-                  </button>
+
                 </div>
               </div>
             ))}

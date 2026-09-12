@@ -28,15 +28,45 @@ const timeSlots = [
   },
 ];
 
+const services = [
+  { id: "electrician", name: "Electrician", price: 299, icon: "⚡", duration: "1–2 hours" },
+  { id: "plumber", name: "Plumber", price: 349, icon: "🔧", duration: "1–2 hours" },
+  { id: "home-cleaning", name: "Home Cleaning", price: 499, icon: "✨", duration: "2–3 hours" },
+  { id: "carpenter", name: "Carpenter", price: 399, icon: "🪚", duration: "1–2 hours" },
+  { id: "appliance-repair", name: "Appliance Repair", price: 399, icon: "🔌", duration: "1–2 hours" },
+  { id: "painting", name: "Painting", price: 599, icon: "🎨", duration: "3–5 hours" },
+  { id: "gardening", name: "Gardening", price: 299, icon: "🌱", duration: "1–2 hours" },
+  { id: "ac-service", name: "AC Service", price: 499, icon: "❄️", duration: "1–2 hours" },
+  { id: "pest-control", name: "Pest Control", price: 599, icon: "🛡️", duration: "2–3 hours" },
+  { id: "fan-installation", name: "Fan Installation", price: 299, icon: "🌀", duration: "1 hour" },
+  { id: "washing-machine-repair", name: "Washing Machine Repair", price: 399, icon: "🧺", duration: "1–2 hours" },
+  { id: "furniture-assembly", name: "Furniture Assembly", price: 299, icon: "🪑", duration: "1–2 hours" },
+];
+
+const workers = [
+  { id: "1", name: "Rahul Sharma", rating: 4.8 },
+  { id: "2", name: "Suresh Kumar", rating: 4.7 },
+  { id: "3", name: "Vikram Singh", rating: 4.6 },
+  { id: "4", name: "Ramesh Gupta", rating: 4.5 },
+  { id: "5", name: "Manoj Kumar", rating: 4.4 },
+  { id: "6", name: "Deepak Sharma", rating: 4.3 },
+];
+
 export default function BookingSchedulePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const workerId = searchParams.get("worker") || "1";
-  const serviceId = searchParams.get("service") || "1";
+  const serviceId = searchParams.get("service") || "electrician";
 
   const [selectedDate, setSelectedDate] = useState("11");
   const [selectedTime, setSelectedTime] = useState("10:00 AM");
+
+  const service =
+    services.find((item) => item.id === serviceId) || services[0];
+
+  const worker =
+    workers.find((item) => item.id === workerId) || workers[0];
 
   const selectedDateInfo = dates.find(
     (date) => date.date === selectedDate
@@ -52,7 +82,6 @@ export default function BookingSchedulePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
-      {/* Header */}
       <header className="border-b border-gray-100 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <button
@@ -74,20 +103,14 @@ export default function BookingSchedulePage() {
         </div>
       </header>
 
-      {/* Progress */}
       <div className="border-b bg-white">
         <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6">
           <div className="flex items-center justify-between text-xs sm:text-sm">
-            <div className="text-gray-400">
-              1. Service & Worker
-            </div>
-
+            <div className="text-gray-400">1. Service & Worker</div>
             <div className="text-gray-400">2. Location</div>
-
             <div className="font-semibold text-green-700">
               3. Date & Time
             </div>
-
             <div className="text-gray-400">4. Review</div>
           </div>
 
@@ -97,9 +120,7 @@ export default function BookingSchedulePage() {
         </div>
       </div>
 
-      {/* Main */}
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Back */}
         <button
           onClick={() => router.back()}
           className="mb-6 text-sm font-medium text-gray-600 hover:text-green-700"
@@ -107,21 +128,18 @@ export default function BookingSchedulePage() {
           ← Back
         </button>
 
-        {/* Heading */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold sm:text-3xl">
             Choose date & time
           </h1>
 
           <p className="mt-2 text-gray-600">
-            Select a convenient time for Rahul to visit you.
+            Select a convenient time for {worker.name} to visit you.
           </p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-          {/* Left */}
           <div className="space-y-6">
-            {/* Selected Service */}
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
@@ -130,21 +148,20 @@ export default function BookingSchedulePage() {
                   </p>
 
                   <h2 className="mt-1 text-lg font-semibold">
-                    Electrical Repair
+                    {service.name}
                   </h2>
 
                   <p className="mt-1 text-sm text-gray-500">
-                    Rahul Sharma · 4.8 ★ · Verified Worker
+                    {worker.name} · {worker.rating} ★ · Verified Worker
                   </p>
                 </div>
 
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-xl">
-                  ⚡
+                  {service.icon}
                 </div>
               </div>
             </section>
 
-            {/* Date */}
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
@@ -203,7 +220,6 @@ export default function BookingSchedulePage() {
               </div>
             </section>
 
-            {/* Time Slots */}
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <div>
                 <h2 className="text-lg font-semibold">
@@ -249,24 +265,21 @@ export default function BookingSchedulePage() {
                 ))}
               </div>
 
-              {/* Availability note */}
               <div className="mt-6 flex gap-3 rounded-xl bg-green-50 p-4">
                 <div className="text-lg">✓</div>
 
                 <div>
                   <p className="text-sm font-semibold text-green-900">
-                    Rahul is available
+                    {worker.name} is available
                   </p>
 
                   <p className="mt-1 text-xs leading-5 text-green-800">
-                    These time slots are currently available for
-                    booking.
+                    These time slots are currently available for booking.
                   </p>
                 </div>
               </div>
             </section>
 
-            {/* Service Duration */}
             <section className="rounded-2xl border border-gray-200 bg-white p-6">
               <div className="flex gap-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100">
@@ -279,14 +292,14 @@ export default function BookingSchedulePage() {
                   </h3>
 
                   <p className="mt-1 text-sm text-gray-500">
-                    Electrical Repair usually takes around 1–2 hours.
+                    {service.name} usually takes around{" "}
+                    {service.duration}.
                   </p>
                 </div>
               </div>
             </section>
           </div>
 
-          {/* Right Summary */}
           <aside>
             <div className="sticky top-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-lg font-semibold">
@@ -295,29 +308,23 @@ export default function BookingSchedulePage() {
 
               <div className="mt-6 space-y-5">
                 <div>
-                  <p className="text-xs text-gray-400">
-                    Service
-                  </p>
+                  <p className="text-xs text-gray-400">Service</p>
 
                   <p className="mt-1 font-medium">
-                    Electrical Repair
+                    {service.name}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-gray-400">
-                    Worker
-                  </p>
+                  <p className="text-xs text-gray-400">Worker</p>
 
                   <p className="mt-1 font-medium">
-                    Rahul Sharma
+                    {worker.name}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-gray-400">
-                    Location
-                  </p>
+                  <p className="text-xs text-gray-400">Location</p>
 
                   <p className="mt-1 text-sm leading-6 text-gray-600">
                     Flat 204, Green Residency,
@@ -355,7 +362,7 @@ export default function BookingSchedulePage() {
                     </span>
 
                     <span className="text-xl font-bold text-green-700">
-                      ₹299
+                      ₹{service.price}
                     </span>
                   </div>
 
@@ -380,7 +387,6 @@ export default function BookingSchedulePage() {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="border-t bg-white">
         <div className="mx-auto max-w-7xl px-4 py-6 text-center text-sm text-gray-500">
           © 2026 Sahakar Seva · Trusted cooperative services

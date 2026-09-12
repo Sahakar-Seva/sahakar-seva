@@ -2,30 +2,155 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { notFound } from "next/navigation";
 
-const service = {
-  name: "Electrical Repair",
-  category: "Repairs",
-  icon: "⚡",
-  rating: 4.6,
-  reviews: 184,
-  price: 299,
-  workers: 28,
-  duration: "1–2 hours",
-  description:
-    "Get reliable electrical repair and installation services from verified cooperative workers. Whether it is a faulty switch, wiring issue, fan installation, or another common electrical problem, trained workers are available to help.",
-  included: [
-    "Inspection of the electrical issue",
-    "Basic repair and troubleshooting",
-    "Switch and socket repair",
-    "Minor wiring work",
-    "Fan and light installation",
-  ],
-  areas: ["Delhi", "Noida", "Gurugram", "Ghaziabad"],
-};
+const services = [
+  {
+    name: "Electrician",
+    category: "Repairs",
+    icon: "⚡",
+    rating: 4.8,
+    reviews: 184,
+    price: 299,
+    workers: 28,
+    description: "Electrical repairs, wiring and installations",
+  },
+  {
+    name: "Plumber",
+    category: "Repairs",
+    icon: "🔧",
+    rating: 4.7,
+    reviews: 156,
+    price: 349,
+    workers: 31,
+    description: "Plumbing repairs, fittings and installations",
+  },
+  {
+    name: "Home Cleaning",
+    category: "Cleaning",
+    icon: "✨",
+    rating: 4.8,
+    reviews: 210,
+    price: 499,
+    workers: 42,
+    description: "Professional home and deep cleaning services",
+  },
+  {
+    name: "Carpenter",
+    category: "Home Improvement",
+    icon: "🪚",
+    rating: 4.6,
+    reviews: 128,
+    price: 399,
+    workers: 19,
+    description: "Furniture repair, installation and woodwork",
+  },
+  {
+    name: "Appliance Repair",
+    category: "Appliance Services",
+    icon: "🔌",
+    rating: 4.5,
+    reviews: 112,
+    price: 399,
+    workers: 19,
+    description: "Repair and maintenance of household appliances",
+  },
+  {
+    name: "Painting",
+    category: "Home Improvement",
+    icon: "🎨",
+    rating: 4.4,
+    reviews: 96,
+    price: 599,
+    workers: 17,
+    description: "Interior and exterior painting services",
+  },
+  {
+    name: "Gardening",
+    category: "Outdoor Services",
+    icon: "🌱",
+    rating: 4.8,
+    reviews: 142,
+    price: 299,
+    workers: 24,
+    description: "Garden maintenance and plant care",
+  },
+  {
+    name: "AC Service",
+    category: "Appliance Services",
+    icon: "❄️",
+    rating: 4.6,
+    reviews: 134,
+    price: 499,
+    workers: 15,
+    description: "AC servicing, cleaning and maintenance",
+  },
+  {
+    name: "Pest Control",
+    category: "Home Services",
+    icon: "🛡️",
+    rating: 4.2,
+    reviews: 88,
+    price: 599,
+    workers: 8,
+    description: "Safe pest control for your home",
+  },
+  {
+    name: "Fan Installation",
+    category: "Home Services",
+    icon: "🌀",
+    rating: 4.7,
+    reviews: 105,
+    price: 299,
+    workers: 14,
+    description: "Ceiling and wall fan installation services",
+  },
+  {
+    name: "Washing Machine Repair",
+    category: "Appliance Services",
+    icon: "🧺",
+    rating: 4.5,
+    reviews: 91,
+    price: 399,
+    workers: 11,
+    description: "Washing machine repair and maintenance",
+  },
+  {
+    name: "Furniture Assembly",
+    category: "Home Improvement",
+    icon: "🪑",
+    rating: 4.6,
+    reviews: 79,
+    price: 299,
+    workers: 13,
+    description: "Furniture assembly and installation",
+  },
+];
 
 export default function ServiceDetailsPage() {
   const params = useParams();
+  const serviceId = String(params.id);
+
+const service = services.find(
+  (item) =>
+    item.name.toLowerCase().replace(/\s+/g, "-") === serviceId
+);
+
+if (!service) {
+  notFound();
+}
+
+const duration = "1–2 hours";
+
+const included = [
+  "Service inspection and assessment",
+  "Basic repair and troubleshooting",
+  "Common service and installation work",
+  "Work by verified cooperative workers",
+];
+
+const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
+
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900">
@@ -163,7 +288,7 @@ export default function ServiceDetailsPage() {
                 <div className="rounded-xl bg-gray-50 p-4">
                   <p className="text-xs text-gray-500">Typical duration</p>
                   <p className="mt-1 text-xl font-bold">
-                    {service.duration}
+                    {duration}
                   </p>
                 </div>
 
@@ -239,7 +364,7 @@ export default function ServiceDetailsPage() {
             </p>
 
             <div className="mt-5 space-y-4">
-              {service.included.map((item, index) => (
+              {included.map((item, index) => (
                 <div
                   key={index}
                   className="flex items-start gap-3"
@@ -263,7 +388,7 @@ export default function ServiceDetailsPage() {
             </p>
 
             <div className="mt-5 flex flex-wrap gap-3">
-              {service.areas.map((area) => (
+              {areas.map((area) => (
                 <span
                   key={area}
                   className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700"

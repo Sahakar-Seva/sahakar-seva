@@ -14,7 +14,7 @@ type Service = {
   status: ServiceStatus;
 };
 
-const services: Service[] = [
+const initialServices: Service[] = [
   {
     id: 1,
     name: "Home Cleaning",
@@ -99,9 +99,16 @@ const categories = [
 ];
 
 export default function AdminServicesPage() {
+  const [services, setServices] = useState<Service[]>(initialServices);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All Services");
   const [status, setStatus] = useState("All");
+
+  const [selectedService, setSelectedService] = useState<Service | null>(
+    null
+  );
+  const [manageStatus, setManageStatus] =
+    useState<ServiceStatus>("Active");
 
   const filteredServices = useMemo(() => {
     return services.filter((service) => {
@@ -117,11 +124,47 @@ export default function AdminServicesPage() {
 
       return matchesSearch && matchesCategory && matchesStatus;
     });
-  }, [search, category, status]);
+  }, [services, search, category, status]);
 
   const popularServices = [...services]
     .sort((a, b) => b.bookings - a.bookings)
     .slice(0, 5);
+
+  const activeServices = services.filter(
+    (service) => service.status === "Active"
+  ).length;
+
+  const reviewServices = services.filter(
+    (service) => service.status === "Review"
+  ).length;
+
+  const mostBooked = services.reduce(
+    (max, service) => (service.bookings > max.bookings ? service : max),
+    services[0]
+  );
+
+  const openManage = (service: Service) => {
+    setSelectedService(service);
+    setManageStatus(service.status);
+  };
+
+  const closeManage = () => {
+    setSelectedService(null);
+  };
+
+  const saveService = () => {
+    if (!selectedService) return;
+
+    setServices((current) =>
+      current.map((service) =>
+        service.id === selectedService.id
+          ? { ...service, status: manageStatus }
+          : service
+      )
+    );
+
+    setSelectedService(null);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -170,28 +213,28 @@ export default function AdminServicesPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <SummaryCard
             title="Total Services"
-            value="24"
+            value={String(services.length)}
             subtitle="Available in catalog"
             icon="🛠️"
           />
 
           <SummaryCard
             title="Active Services"
-            value="21"
+            value={String(activeServices)}
             subtitle="Currently available"
             icon="✅"
           />
 
           <SummaryCard
             title="Most Booked"
-            value="328"
-            subtitle="Home Cleaning bookings"
+            value={String(mostBooked?.bookings ?? 0)}
+            subtitle={`${mostBooked?.name ?? "No service"} bookings`}
             icon="🔥"
           />
 
           <SummaryCard
             title="Needs Review"
-            value="3"
+            value={String(reviewServices)}
             subtitle="Services require attention"
             icon="⚠️"
           />
@@ -290,7 +333,9 @@ export default function AdminServicesPage() {
                     </td>
 
                     <td className="px-5 py-4">
-                      <span className="font-medium">⭐ {service.rating}</span>
+                      <span className="font-medium">
+                        ⭐ {service.rating}
+                      </span>
                     </td>
 
                     <td className="px-5 py-4">
@@ -298,7 +343,10 @@ export default function AdminServicesPage() {
                     </td>
 
                     <td className="px-5 py-4">
-                      <button className="rounded-lg border px-3 py-1.5 text-xs font-medium hover:bg-gray-50">
+                      <button
+                        onClick={() => openManage(service)}
+                        className="rounded-lg border px-3 py-1.5 text-xs font-medium hover:bg-gray-50"
+                      >
                         Manage
                       </button>
                     </td>
@@ -307,13 +355,10 @@ export default function AdminServicesPage() {
               </tbody>
             </table>
 
-            {filteredServices.length === 0 && (
-              <EmptyState />
-            )}
+            {filteredServices.length === 0 && <EmptyState />}
           </div>
 
-          {/* Pagination */}
-          <Pagination />
+          <Pagination displayed={filteredServices.length} total={services.length} />
         </section>
 
         {/* Mobile Cards */}
@@ -354,11 +399,16 @@ export default function AdminServicesPage() {
 
                 <div>
                   <p className="text-xs text-gray-500">Rating</p>
-                  <p className="mt-1 font-semibold">⭐ {service.rating}</p>
+                  <p className="mt-1 font-semibold">
+                    ⭐ {service.rating}
+                  </p>
                 </div>
               </div>
 
-              <button className="mt-4 w-full rounded-xl border py-2 text-sm font-medium hover:bg-gray-50">
+              <button
+                onClick={() => openManage(service)}
+                className="mt-4 w-full rounded-xl border py-2 text-sm font-medium hover:bg-gray-50"
+              >
                 Manage Service
               </button>
             </div>
@@ -366,7 +416,7 @@ export default function AdminServicesPage() {
 
           {filteredServices.length === 0 && <EmptyState />}
 
-          <Pagination />
+          <Pagination displayed={filteredServices.length} total={services.length} />
         </section>
 
         {/* Popular Services */}
@@ -381,7 +431,9 @@ export default function AdminServicesPage() {
           <div className="space-y-5">
             {popularServices.map((service, index) => {
               const percentage =
-                (service.bookings / popularServices[0].bookings) * 100;
+                popularServices[0]?.bookings > 0
+                  ? (service.bookings / popularServices[0].bookings) * 100
+                  : 0;
 
               return (
                 <div key={service.id}>
@@ -392,7 +444,9 @@ export default function AdminServicesPage() {
                       </span>
 
                       <div>
-                        <p className="text-sm font-medium">{service.name}</p>
+                        <p className="text-sm font-medium">
+                          {service.name}
+                        </p>
                         <p className="text-xs text-gray-500">
                           {service.bookings} bookings
                         </p>
@@ -435,6 +489,98 @@ export default function AdminServicesPage() {
           </div>
         </section>
       </main>
+
+      {/* Manage Service Modal */}
+      {selectedService && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={closeManage}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-lg font-bold">Manage Service</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Update service status.
+                </p>
+              </div>
+
+              <button
+                onClick={closeManage}
+                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mt-5 rounded-xl bg-gray-50 p-4">
+              <p className="font-semibold">{selectedService.name}</p>
+              <p className="mt-1 text-sm text-gray-500">
+                {selectedService.category}
+              </p>
+
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                <div>
+                  <p className="text-xs text-gray-500">Workers</p>
+                  <p className="mt-1 font-semibold">
+                    {selectedService.workers}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-gray-500">Bookings</p>
+                  <p className="mt-1 font-semibold">
+                    {selectedService.bookings}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-gray-500">Rating</p>
+                  <p className="mt-1 font-semibold">
+                    ⭐ {selectedService.rating}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5">
+              <label className="text-sm font-medium">
+                Service Status
+              </label>
+
+              <select
+                value={manageStatus}
+                onChange={(e) =>
+                  setManageStatus(e.target.value as ServiceStatus)
+                }
+                className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-green-500"
+              >
+                <option value="Active">Active</option>
+                <option value="Review">Review</option>
+              </select>
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={closeManage}
+                className="flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={saveService}
+                className="flex-1 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -478,10 +624,18 @@ function StatusBadge({ status }: { status: ServiceStatus }) {
   );
 }
 
-function Pagination() {
+function Pagination({
+  displayed,
+  total,
+}: {
+  displayed: number;
+  total: number;
+}) {
   return (
     <div className="flex items-center justify-between border-t px-5 py-4">
-      <p className="text-xs text-gray-500">Showing 1–8 of 24 services</p>
+      <p className="text-xs text-gray-500">
+        Showing {displayed} of {total} services
+      </p>
 
       <div className="flex gap-2">
         <button className="rounded-lg border px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-50">

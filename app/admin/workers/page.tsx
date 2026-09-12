@@ -1,6 +1,29 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+type WorkerStatus = "Verified" | "Pending" | "Suspended";
+
+type Worker = {
+  name: string;
+  service: string;
+  phone: string;
+  joined: string;
+  bookings: number;
+  rating: string;
+  status: WorkerStatus;
+  initials: string;
+};
+
 function BellIcon() {
   return (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg
+      className="h-5 w-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    >
       <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
       <path d="M10 21h4" />
     </svg>
@@ -9,7 +32,13 @@ function BellIcon() {
 
 function CheckIcon() {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+    <svg
+      className="h-4 w-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+    >
       <path d="m5 12 4 4L19 6" />
     </svg>
   );
@@ -17,7 +46,13 @@ function CheckIcon() {
 
 function SearchIcon() {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      className="h-4 w-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <circle cx="11" cy="11" r="7" />
       <path d="m20 20-4-4" />
     </svg>
@@ -26,7 +61,13 @@ function SearchIcon() {
 
 function FilterIcon() {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg
+      className="h-4 w-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    >
       <path d="M4 6h16M7 12h10M10 18h4" />
     </svg>
   );
@@ -34,7 +75,13 @@ function FilterIcon() {
 
 function WorkerIcon() {
   return (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg
+      className="h-5 w-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    >
       <circle cx="12" cy="8" r="4" />
       <path d="M5 21a7 7 0 0 1 14 0" />
     </svg>
@@ -42,7 +89,7 @@ function WorkerIcon() {
 }
 
 export default function AdminWorkers() {
-  const workers = [
+  const [workers, setWorkers] = useState<Worker[]>([
     {
       name: "Rahul Sharma",
       service: "Electrical Services",
@@ -123,7 +170,90 @@ export default function AdminWorkers() {
       status: "Suspended",
       initials: "SV",
     },
-  ];
+  ]);
+
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"All" | WorkerStatus>("All");
+  const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
+  const [modalType, setModalType] = useState<
+    "view" | "manage" | "add" | null
+  >(null);
+
+  const verifiedCount = workers.filter(
+    (worker) => worker.status === "Verified"
+  ).length;
+
+  const pendingCount = workers.filter(
+    (worker) => worker.status === "Pending"
+  ).length;
+
+  const activeCount = workers.filter(
+    (worker) => worker.status === "Verified"
+  ).length;
+
+  const filteredWorkers = useMemo(() => {
+    return workers.filter((worker) => {
+      const matchesSearch =
+        worker.name.toLowerCase().includes(search.toLowerCase()) ||
+        worker.service.toLowerCase().includes(search.toLowerCase()) ||
+        worker.phone.toLowerCase().includes(search.toLowerCase());
+
+      const matchesFilter =
+        filter === "All" || worker.status === filter;
+
+      return matchesSearch && matchesFilter;
+    });
+  }, [workers, search, filter]);
+
+  const updateWorkerStatus = (
+    workerName: string,
+    status: WorkerStatus
+  ) => {
+    setWorkers((currentWorkers) =>
+      currentWorkers.map((worker) =>
+        worker.name === workerName
+          ? { ...worker, status }
+          : worker
+      )
+    );
+
+    setSelectedWorker((currentWorker) =>
+      currentWorker
+        ? { ...currentWorker, status }
+        : currentWorker
+    );
+
+    if (status === "Verified") {
+      setModalType(null);
+    }
+  };
+
+  const openView = (worker: Worker) => {
+    setSelectedWorker(worker);
+    setModalType("view");
+  };
+
+  const openManage = (worker: Worker) => {
+    setSelectedWorker(worker);
+    setModalType("manage");
+  };
+
+  const openReviewRequests = () => {
+    setSearch("");
+    setFilter("Pending");
+  };
+
+  const getStatusClasses = (status: WorkerStatus) => {
+    if (status === "Verified") {
+      return "bg-green-50 text-green-700";
+    }
+
+    if (status === "Pending") {
+      return "bg-yellow-50 text-yellow-700";
+    }
+
+    return "bg-red-50 text-red-700";
+  };
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900">
@@ -144,23 +274,38 @@ export default function AdminWorkers() {
           </div>
 
           <nav className="hidden items-center gap-7 text-sm font-medium text-gray-600 lg:flex">
-            <a href="/admin/dashboard" className="hover:text-green-700">
+            <a
+              href="/admin/dashboard"
+              className="hover:text-green-700"
+            >
               Dashboard
             </a>
 
-            <a href="/admin/workers" className="font-semibold text-green-700">
+            <a
+              href="/admin/workers"
+              className="font-semibold text-green-700"
+            >
               Workers
             </a>
 
-            <a href="#" className="hover:text-green-700">
+            <a
+              href="/admin/customer"
+              className="hover:text-green-700"
+            >
               Customers
             </a>
 
-            <a href="#" className="hover:text-green-700">
+            <a
+              href="/admin/bookings"
+              className="hover:text-green-700"
+            >
               Bookings
             </a>
 
-            <a href="#" className="hover:text-green-700">
+            <a
+              href="/admin/services"
+              className="hover:text-green-700"
+            >
               Services
             </a>
           </nav>
@@ -189,10 +334,15 @@ export default function AdminWorkers() {
         {/* Title */}
         <div>
           <div className="mb-4 flex items-center gap-2 text-sm text-gray-500">
-            <a href="/admin/dashboard" className="hover:text-green-700">
+            <a
+              href="/admin/dashboard"
+              className="hover:text-green-700"
+            >
               Dashboard
             </a>
+
             <span>/</span>
+
             <span className="text-gray-800">Workers</span>
           </div>
 
@@ -205,7 +355,13 @@ export default function AdminWorkers() {
               </p>
             </div>
 
-            <button className="flex items-center justify-center gap-2 rounded-xl bg-green-700 px-5 py-3 text-sm font-semibold text-white hover:bg-green-800">
+            <button
+              onClick={() => {
+                setSelectedWorker(null);
+                setModalType("add");
+              }}
+              className="flex items-center justify-center gap-2 rounded-xl bg-green-700 px-5 py-3 text-sm font-semibold text-white hover:bg-green-800"
+            >
               <WorkerIcon />
               Add Worker
             </button>
@@ -216,7 +372,11 @@ export default function AdminWorkers() {
         <div className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <p className="text-sm text-gray-500">Total Workers</p>
-            <p className="mt-2 text-2xl font-bold">248</p>
+
+            <p className="mt-2 text-2xl font-bold">
+              {workers.length}
+            </p>
+
             <p className="mt-2 text-xs text-gray-500">
               Registered on platform
             </p>
@@ -224,15 +384,28 @@ export default function AdminWorkers() {
 
           <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <p className="text-sm text-gray-500">Verified Workers</p>
-            <p className="mt-2 text-2xl font-bold text-green-700">216</p>
+
+            <p className="mt-2 text-2xl font-bold text-green-700">
+              {verifiedCount}
+            </p>
+
             <p className="mt-2 text-xs text-green-700">
-              87.1% of all workers
+              {workers.length
+                ? ((verifiedCount / workers.length) * 100).toFixed(1)
+                : 0}
+              % of visible workers
             </p>
           </div>
 
           <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-            <p className="text-sm text-gray-500">Pending Verification</p>
-            <p className="mt-2 text-2xl font-bold text-yellow-700">8</p>
+            <p className="text-sm text-gray-500">
+              Pending Verification
+            </p>
+
+            <p className="mt-2 text-2xl font-bold text-yellow-700">
+              {pendingCount}
+            </p>
+
             <p className="mt-2 text-xs text-gray-500">
               Requires admin review
             </p>
@@ -240,7 +413,11 @@ export default function AdminWorkers() {
 
           <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <p className="text-sm text-gray-500">Active Workers</p>
-            <p className="mt-2 text-2xl font-bold">203</p>
+
+            <p className="mt-2 text-2xl font-bold">
+              {activeCount}
+            </p>
+
             <p className="mt-2 text-xs text-gray-500">
               Currently accepting work
             </p>
@@ -257,17 +434,20 @@ export default function AdminWorkers() {
 
               <div>
                 <h3 className="font-semibold text-yellow-900">
-                  8 workers are waiting for verification
+                  {pendingCount} workers are waiting for verification
                 </h3>
 
                 <p className="mt-1 text-sm text-yellow-800">
-                  Review their details and documents before approving them
-                  on the platform.
+                  Review their details before approving them on the
+                  platform.
                 </p>
               </div>
             </div>
 
-            <button className="rounded-xl bg-yellow-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-yellow-700">
+            <button
+              onClick={openReviewRequests}
+              className="rounded-xl bg-yellow-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-yellow-700"
+            >
               Review Requests
             </button>
           </div>
@@ -279,6 +459,7 @@ export default function AdminWorkers() {
           <div className="flex flex-col gap-4 border-b border-gray-100 p-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h3 className="text-lg font-bold">All Workers</h3>
+
               <p className="mt-1 text-sm text-gray-500">
                 View and manage registered workers.
               </p>
@@ -290,12 +471,19 @@ export default function AdminWorkers() {
 
                 <input
                   type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search workers..."
                   className="w-full bg-transparent text-sm outline-none"
                 />
               </div>
 
-              <button className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+              <button
+                onClick={() =>
+                  setFilter(filter === "All" ? "Verified" : "All")
+                }
+                className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
                 <FilterIcon />
                 Filter
               </button>
@@ -304,21 +492,21 @@ export default function AdminWorkers() {
 
           {/* Filters */}
           <div className="flex flex-wrap gap-2 border-b border-gray-100 px-6 py-4">
-            <button className="rounded-full bg-green-700 px-4 py-2 text-xs font-semibold text-white">
-              All Workers
-            </button>
-
-            <button className="rounded-full bg-gray-100 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-200">
-              Verified
-            </button>
-
-            <button className="rounded-full bg-gray-100 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-200">
-              Pending
-            </button>
-
-            <button className="rounded-full bg-gray-100 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-200">
-              Suspended
-            </button>
+            {(["All", "Verified", "Pending", "Suspended"] as const).map(
+              (status) => (
+                <button
+                  key={status}
+                  onClick={() => setFilter(status)}
+                  className={`rounded-full px-4 py-2 text-xs font-semibold ${
+                    filter === status
+                      ? "bg-green-700 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {status === "All" ? "All Workers" : status}
+                </button>
+              )
+            )}
           </div>
 
           {/* Desktop Table */}
@@ -339,8 +527,11 @@ export default function AdminWorkers() {
               </thead>
 
               <tbody className="divide-y divide-gray-100">
-                {workers.map((worker) => (
-                  <tr key={worker.name} className="hover:bg-gray-50/70">
+                {filteredWorkers.map((worker) => (
+                  <tr
+                    key={worker.name}
+                    className="hover:bg-gray-50/70"
+                  >
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-xs font-bold text-green-800">
@@ -348,7 +539,10 @@ export default function AdminWorkers() {
                         </div>
 
                         <div>
-                          <p className="font-semibold">{worker.name}</p>
+                          <p className="font-semibold">
+                            {worker.name}
+                          </p>
+
                           <p className="mt-1 text-xs text-gray-400">
                             {worker.phone}
                           </p>
@@ -380,13 +574,9 @@ export default function AdminWorkers() {
 
                     <td className="px-6 py-5">
                       <span
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                          worker.status === "Verified"
-                            ? "bg-green-50 text-green-700"
-                            : worker.status === "Pending"
-                              ? "bg-yellow-50 text-yellow-700"
-                              : "bg-red-50 text-red-700"
-                        }`}
+                        className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusClasses(
+                          worker.status
+                        )}`}
                       >
                         {worker.status}
                       </span>
@@ -394,18 +584,32 @@ export default function AdminWorkers() {
 
                     <td className="px-6 py-5">
                       <div className="flex justify-end gap-2">
-                        <button className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium hover:bg-gray-50">
+                        <button
+                          onClick={() => openView(worker)}
+                          className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium hover:bg-gray-50"
+                        >
                           View
                         </button>
 
                         {worker.status === "Pending" && (
-                          <button className="rounded-lg bg-green-700 px-3 py-2 text-xs font-semibold text-white hover:bg-green-800">
+                          <button
+                            onClick={() =>
+                              updateWorkerStatus(
+                                worker.name,
+                                "Verified"
+                              )
+                            }
+                            className="rounded-lg bg-green-700 px-3 py-2 text-xs font-semibold text-white hover:bg-green-800"
+                          >
                             Verify
                           </button>
                         )}
 
-                        {worker.status === "Verified" && (
-                          <button className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50">
+                        {worker.status !== "Pending" && (
+                          <button
+                            onClick={() => openManage(worker)}
+                            className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                          >
                             Manage
                           </button>
                         )}
@@ -417,9 +621,22 @@ export default function AdminWorkers() {
             </table>
           </div>
 
+          {/* Empty State */}
+          {filteredWorkers.length === 0 && (
+            <div className="px-6 py-12 text-center">
+              <p className="font-semibold text-gray-700">
+                No workers found
+              </p>
+
+              <p className="mt-1 text-sm text-gray-500">
+                Try changing your search or filter.
+              </p>
+            </div>
+          )}
+
           {/* Mobile Cards */}
           <div className="divide-y divide-gray-100 md:hidden">
-            {workers.map((worker) => (
+            {filteredWorkers.map((worker) => (
               <div key={worker.name} className="p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -428,7 +645,10 @@ export default function AdminWorkers() {
                     </div>
 
                     <div>
-                      <p className="font-semibold">{worker.name}</p>
+                      <p className="font-semibold">
+                        {worker.name}
+                      </p>
+
                       <p className="mt-1 text-xs text-gray-500">
                         {worker.service}
                       </p>
@@ -436,13 +656,9 @@ export default function AdminWorkers() {
                   </div>
 
                   <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      worker.status === "Verified"
-                        ? "bg-green-50 text-green-700"
-                        : worker.status === "Pending"
-                          ? "bg-yellow-50 text-yellow-700"
-                          : "bg-red-50 text-red-700"
-                    }`}
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${getStatusClasses(
+                      worker.status
+                    )}`}
                   >
                     {worker.status}
                   </span>
@@ -450,21 +666,30 @@ export default function AdminWorkers() {
 
                 <div className="mt-4 grid grid-cols-3 gap-3 rounded-xl bg-gray-50 p-3">
                   <div>
-                    <p className="text-xs text-gray-400">Bookings</p>
+                    <p className="text-xs text-gray-400">
+                      Bookings
+                    </p>
+
                     <p className="mt-1 text-sm font-semibold">
                       {worker.bookings}
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-xs text-gray-400">Rating</p>
+                    <p className="text-xs text-gray-400">
+                      Rating
+                    </p>
+
                     <p className="mt-1 text-sm font-semibold">
                       {worker.rating}
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-xs text-gray-400">Joined</p>
+                    <p className="text-xs text-gray-400">
+                      Joined
+                    </p>
+
                     <p className="mt-1 text-sm font-semibold">
                       {worker.joined.split(" ")[0]}
                     </p>
@@ -472,18 +697,32 @@ export default function AdminWorkers() {
                 </div>
 
                 <div className="mt-4 flex gap-2">
-                  <button className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium">
+                  <button
+                    onClick={() => openView(worker)}
+                    className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium"
+                  >
                     View
                   </button>
 
                   {worker.status === "Pending" && (
-                    <button className="flex-1 rounded-lg bg-green-700 px-3 py-2 text-xs font-semibold text-white">
+                    <button
+                      onClick={() =>
+                        updateWorkerStatus(
+                          worker.name,
+                          "Verified"
+                        )
+                      }
+                      className="flex-1 rounded-lg bg-green-700 px-3 py-2 text-xs font-semibold text-white"
+                    >
                       Verify
                     </button>
                   )}
 
-                  {worker.status === "Verified" && (
-                    <button className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium">
+                  {worker.status !== "Pending" && (
+                    <button
+                      onClick={() => openManage(worker)}
+                      className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium"
+                    >
                       Manage
                     </button>
                   )}
@@ -495,8 +734,15 @@ export default function AdminWorkers() {
           {/* Pagination */}
           <div className="flex flex-col gap-3 border-t border-gray-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-gray-500">
-              Showing <span className="font-medium">1–8</span> of{" "}
-              <span className="font-medium">248</span> workers
+              Showing{" "}
+              <span className="font-medium">
+                {filteredWorkers.length}
+              </span>{" "}
+              of{" "}
+              <span className="font-medium">
+                {workers.length}
+              </span>{" "}
+              workers
             </p>
 
             <div className="flex gap-2">
@@ -536,15 +782,264 @@ export default function AdminWorkers() {
               </h3>
 
               <p className="mt-1 max-w-3xl text-sm leading-6 text-green-800">
-                Verify worker identity, skills, and required documents before
-                allowing them to provide services through Sahakar Seva.
-                Verified workers help customers feel confident while supporting
-                a trusted cooperative ecosystem.
+                Verify worker identity, skills, and required documents
+                before allowing them to provide services through Sahakar
+                Seva. Verified workers help customers feel confident while
+                supporting a trusted cooperative ecosystem.
               </p>
             </div>
           </div>
         </section>
       </div>
+
+      {/* Modal */}
+      {modalType && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={() => setModalType(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* View Worker */}
+            {modalType === "view" && selectedWorker && (
+              <>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-bold">
+                      Worker Details
+                    </h3>
+
+                    <p className="mt-1 text-sm text-gray-500">
+                      View registered worker information.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => setModalType(null)}
+                    className="rounded-lg px-3 py-2 text-gray-500 hover:bg-gray-100"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="mt-6 flex items-center gap-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100 font-bold text-green-800">
+                    {selectedWorker.initials}
+                  </div>
+
+                  <div>
+                    <p className="text-lg font-bold">
+                      {selectedWorker.name}
+                    </p>
+
+                    <span
+                      className={`mt-1 inline-block rounded-full px-3 py-1 text-xs font-medium ${getStatusClasses(
+                        selectedWorker.status
+                      )}`}
+                    >
+                      {selectedWorker.status}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-xl bg-gray-50 p-4">
+                    <p className="text-xs text-gray-400">Service</p>
+                    <p className="mt-1 text-sm font-semibold">
+                      {selectedWorker.service}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-gray-50 p-4">
+                    <p className="text-xs text-gray-400">Phone</p>
+                    <p className="mt-1 text-sm font-semibold">
+                      {selectedWorker.phone}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-gray-50 p-4">
+                    <p className="text-xs text-gray-400">Joined</p>
+                    <p className="mt-1 text-sm font-semibold">
+                      {selectedWorker.joined}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-gray-50 p-4">
+                    <p className="text-xs text-gray-400">Bookings</p>
+                    <p className="mt-1 text-sm font-semibold">
+                      {selectedWorker.bookings}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-gray-50 p-4 sm:col-span-2">
+                    <p className="text-xs text-gray-400">Rating</p>
+                    <p className="mt-1 text-sm font-semibold">
+                      {selectedWorker.rating === "—"
+                        ? "No ratings yet"
+                        : `★ ${selectedWorker.rating}`}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setModalType(null)}
+                  className="mt-6 w-full rounded-xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white hover:bg-gray-800"
+                >
+                  Close
+                </button>
+              </>
+            )}
+
+            {/* Manage Worker */}
+            {modalType === "manage" && selectedWorker && (
+              <>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-bold">
+                      Manage Worker
+                    </h3>
+
+                    <p className="mt-1 text-sm text-gray-500">
+                      Update worker account status.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => setModalType(null)}
+                    className="rounded-lg px-3 py-2 text-gray-500 hover:bg-gray-100"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="mt-6 rounded-xl bg-gray-50 p-4">
+                  <p className="font-semibold">
+                    {selectedWorker.name}
+                  </p>
+
+                  <p className="mt-1 text-sm text-gray-500">
+                    {selectedWorker.service}
+                  </p>
+
+                  <p className="mt-3 text-xs text-gray-400">
+                    Current status
+                  </p>
+
+                  <span
+                    className={`mt-1 inline-block rounded-full px-3 py-1 text-xs font-medium ${getStatusClasses(
+                      selectedWorker.status
+                    )}`}
+                  >
+                    {selectedWorker.status}
+                  </span>
+                </div>
+
+                <div className="mt-6 space-y-3">
+                  {selectedWorker.status !== "Verified" && (
+                    <button
+                      onClick={() =>
+                        updateWorkerStatus(
+                          selectedWorker.name,
+                          "Verified"
+                        )
+                      }
+                      className="w-full rounded-xl bg-green-700 px-4 py-3 text-sm font-semibold text-white hover:bg-green-800"
+                    >
+                      Verify Worker
+                    </button>
+                  )}
+
+                  {selectedWorker.status !== "Suspended" && (
+                    <button
+                      onClick={() =>
+                        updateWorkerStatus(
+                          selectedWorker.name,
+                          "Suspended"
+                        )
+                      }
+                      className="w-full rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-red-100"
+                    >
+                      Suspend Worker
+                    </button>
+                  )}
+
+                  {selectedWorker.status === "Suspended" && (
+                    <button
+                      onClick={() =>
+                        updateWorkerStatus(
+                          selectedWorker.name,
+                          "Verified"
+                        )
+                      }
+                      className="w-full rounded-xl bg-green-700 px-4 py-3 text-sm font-semibold text-white hover:bg-green-800"
+                    >
+                      Activate Worker
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => setModalType(null)}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Add Worker */}
+            {modalType === "add" && (
+              <>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-bold">
+                      Add Worker
+                    </h3>
+
+                    <p className="mt-1 text-sm text-gray-500">
+                      Worker registration will be connected to Firebase
+                      later.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => setModalType(null)}
+                    className="rounded-lg px-3 py-2 text-gray-500 hover:bg-gray-100"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="mt-6 rounded-xl border border-dashed border-gray-300 p-6 text-center">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-700">
+                    <WorkerIcon />
+                  </div>
+
+                  <h4 className="mt-4 font-semibold">
+                    Worker registration
+                  </h4>
+
+                  <p className="mt-2 text-sm leading-6 text-gray-500">
+                    For the current demo, worker accounts are managed
+                    through the existing worker data. Firebase-based
+                    worker registration will be connected during the
+                    authentication/backend phase.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setModalType(null)}
+                  className="mt-6 w-full rounded-xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white hover:bg-gray-800"
+                >
+                  Close
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }

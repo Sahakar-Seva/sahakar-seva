@@ -7,7 +7,6 @@ const workers = [
   {
     id: 1,
     name: "Rahul Sharma",
-    service: "Electrical Repair",
     rating: 4.8,
     reviews: 126,
     experience: "5 years",
@@ -21,7 +20,6 @@ const workers = [
   {
     id: 2,
     name: "Suresh Kumar",
-    service: "Electrical Repair",
     rating: 4.7,
     reviews: 98,
     experience: "4 years",
@@ -35,7 +33,6 @@ const workers = [
   {
     id: 3,
     name: "Vikram Singh",
-    service: "Electrical Repair",
     rating: 4.6,
     reviews: 87,
     experience: "6 years",
@@ -49,7 +46,6 @@ const workers = [
   {
     id: 4,
     name: "Ramesh Gupta",
-    service: "Electrical Repair",
     rating: 4.5,
     reviews: 74,
     experience: "3 years",
@@ -63,7 +59,6 @@ const workers = [
   {
     id: 5,
     name: "Manoj Kumar",
-    service: "Electrical Repair",
     rating: 4.4,
     reviews: 61,
     experience: "3 years",
@@ -77,7 +72,6 @@ const workers = [
   {
     id: 6,
     name: "Deepak Sharma",
-    service: "Electrical Repair",
     rating: 4.3,
     reviews: 52,
     experience: "2 years",
@@ -90,10 +84,28 @@ const workers = [
   },
 ];
 
+const services = [
+  { id: "electrician", name: "Electrical Repair" },
+  { id: "plumber", name: "Plumbing" },
+  { id: "home-cleaning", name: "Home Cleaning" },
+  { id: "carpenter", name: "Carpentry" },
+  { id: "appliance-repair", name: "Appliance Repair" },
+  { id: "painting", name: "Painting" },
+  { id: "gardening", name: "Gardening" },
+  { id: "ac-service", name: "AC Service" },
+  { id: "pest-control", name: "Pest Control" },
+  { id: "fan-installation", name: "Fan Installation" },
+  { id: "washing-machine-repair", name: "Washing Machine Repair" },
+  { id: "furniture-assembly", name: "Furniture Assembly" },
+];
+
 export default function AvailableWorkersPage() {
   const searchParams = useSearchParams();
 
   const serviceId = searchParams.get("service");
+
+  const selectedService =
+    services.find((service) => service.id === serviceId) || services[0];
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900">
@@ -171,8 +183,8 @@ export default function AvailableWorkersPage() {
         {/* Heading */}
         <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div>
-            <p className="text-sm font-semibold text-green-700">
-              ELECTRICAL REPAIR
+            <p className="text-sm font-semibold uppercase text-green-700">
+              {selectedService.name}
             </p>
 
             <h1 className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">
@@ -259,7 +271,7 @@ export default function AvailableWorkersPage() {
                     </div>
 
                     <p className="mt-1 text-sm text-gray-500">
-                      {worker.service}
+                      {selectedService.name}
                     </p>
                   </div>
                 </div>
@@ -321,14 +333,14 @@ export default function AvailableWorkersPage() {
               {/* Actions */}
               <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href={`/customer/workers/${worker.id}`}
+                  href={`/customer/workers/${worker.id}?service=${serviceId || "electrician"}`}
                   className="flex-1 rounded-xl border border-green-700 px-4 py-3 text-center text-sm font-semibold text-green-700 transition hover:bg-green-50"
                 >
                   View profile
                 </Link>
 
                 <Link
-                  href={`/customer/book?worker=${worker.id}&service=${serviceId || "1"}`}
+                  href={`/customer/book?worker=${worker.id}&service=${serviceId || "electrician"}`}
                   className={`flex-1 rounded-xl px-4 py-3 text-center text-sm font-semibold text-white transition ${
                     worker.available
                       ? "bg-green-700 hover:bg-green-800"

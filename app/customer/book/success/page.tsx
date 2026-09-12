@@ -19,52 +19,99 @@ type Booking = {
   serviceId: string;
 };
 
+const services = [
+  { id: "electrician", name: "Electrician", price: 299 },
+  { id: "plumber", name: "Plumber", price: 349 },
+  { id: "home-cleaning", name: "Home Cleaning", price: 499 },
+  { id: "carpenter", name: "Carpenter", price: 399 },
+  { id: "appliance-repair", name: "Appliance Repair", price: 399 },
+  { id: "painting", name: "Painting", price: 599 },
+  { id: "gardening", name: "Gardening", price: 299 },
+  { id: "ac-service", name: "AC Service", price: 499 },
+  { id: "pest-control", name: "Pest Control", price: 599 },
+  { id: "fan-installation", name: "Fan Installation", price: 299 },
+  {
+    id: "washing-machine-repair",
+    name: "Washing Machine Repair",
+    price: 399,
+  },
+  {
+    id: "furniture-assembly",
+    name: "Furniture Assembly",
+    price: 299,
+  },
+];
+
+const workers = [
+  { id: "1", name: "Rahul Sharma" },
+  { id: "2", name: "Suresh Kumar" },
+  { id: "3", name: "Vikram Singh" },
+  { id: "4", name: "Ramesh Gupta" },
+  { id: "5", name: "Manoj Kumar" },
+  { id: "6", name: "Deepak Sharma" },
+];
+
 export default function BookingSuccessPage() {
   const searchParams = useSearchParams();
 
   const workerId = searchParams.get("worker") || "1";
-  const serviceId = searchParams.get("service") || "1";
+  const serviceId =
+    searchParams.get("service") || "electrician";
   const date = searchParams.get("date") || "11 Sep 2026";
   const time = searchParams.get("time") || "10:00 AM";
 
-  const [copied, setCopied] = useState(false);
+  const service =
+    services.find((item) => item.id === serviceId) || services[0];
 
-  const bookingId = "SS-2026-00124";
+  const worker =
+    workers.find((item) => item.id === workerId) || workers[0];
+
+  const [copied, setCopied] = useState(false);
+  const [bookingId, setBookingId] = useState("");
 
   useEffect(() => {
+    const newBookingId = `SS-${new Date().getFullYear()}-${Date.now()
+      .toString()
+      .slice(-6)}`;
+
+    setBookingId(newBookingId);
+
     const existingBookings: Booking[] = JSON.parse(
       localStorage.getItem("sahakar-seva-bookings") || "[]"
     );
 
-    // Prevent duplicate booking when page is refreshed
-    const alreadyExists = existingBookings.some(
-      (booking) => booking.id === bookingId
+    const newBooking: Booking = {
+      id: newBookingId,
+      customer: "Amit Verma",
+      service: service.name,
+      date,
+      time,
+      location:
+        "Flat 204, Green Residency, Sector 12, Dwarka, New Delhi",
+      amount: service.price,
+      status: "New",
+      phone: "+91 98XXXXXX21",
+      worker: worker.name,
+      workerId,
+      serviceId,
+    };
+
+    localStorage.setItem(
+      "sahakar-seva-bookings",
+      JSON.stringify([...existingBookings, newBooking])
     );
-
-    if (!alreadyExists) {
-      const newBooking: Booking = {
-        id: bookingId,
-        customer: "Amit Verma",
-        service: "Electrical Repair",
-        date,
-        time,
-        location: "Flat 204, Green Residency, Sector 12, Dwarka, New Delhi",
-        amount: 299,
-        status: "New",
-        phone: "+91 98XXXXXX21",
-        worker: "Rahul Sharma",
-        workerId,
-        serviceId,
-      };
-
-      localStorage.setItem(
-        "sahakar-seva-bookings",
-        JSON.stringify([...existingBookings, newBooking])
-      );
-    }
-  }, [date, time, workerId, serviceId]);
+  }, [
+    date,
+    time,
+    workerId,
+    worker,
+    service,
+    serviceId,
+  ]);
 
   const copyBookingId = async () => {
+    if (!bookingId) return;
+
     try {
       await navigator.clipboard.writeText(bookingId);
       setCopied(true);
@@ -82,7 +129,10 @@ export default function BookingSuccessPage() {
       {/* Header */}
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link href="/" className="text-2xl font-bold text-green-700">
+          <Link
+            href="/"
+            className="text-2xl font-bold text-green-700"
+          >
             Sahakar Seva
           </Link>
 
@@ -114,8 +164,8 @@ export default function BookingSuccessPage() {
           </h1>
 
           <p className="mx-auto mt-3 max-w-xl text-gray-600">
-            Your service request has been successfully placed. Rahul Sharma
-            has been notified about your booking.
+            Your service request has been successfully placed.
+            {worker.name} has been notified about your booking.
           </p>
 
           {/* Booking ID */}
@@ -126,12 +176,13 @@ export default function BookingSuccessPage() {
 
             <div className="mt-2 flex items-center justify-center gap-3">
               <p className="text-xl font-bold text-gray-900">
-                {bookingId}
+                {bookingId || "Generating..."}
               </p>
 
               <button
                 onClick={copyBookingId}
-                className="rounded-lg border bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100"
+                disabled={!bookingId}
+                className="rounded-lg border bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {copied ? "Copied!" : "Copy"}
               </button>
@@ -148,10 +199,11 @@ export default function BookingSuccessPage() {
               <div className="mt-2 flex items-center justify-between">
                 <div>
                   <h2 className="font-semibold text-gray-900">
-                    Electrical Repair
+                    {service.name}
                   </h2>
+
                   <p className="mt-1 text-sm text-gray-500">
-                    Worker: Rahul Sharma
+                    Worker: {worker.name}
                   </p>
                 </div>
 
@@ -182,7 +234,7 @@ export default function BookingSuccessPage() {
                 </p>
 
                 <p className="mt-1 text-xl font-bold text-gray-900">
-                  ₹299
+                  ₹{service.price}
                 </p>
               </div>
 
@@ -209,8 +261,9 @@ export default function BookingSuccessPage() {
                 </h3>
 
                 <p className="mt-1 text-sm leading-6 text-blue-800">
-                  Rahul Sharma has received your service request. The booking
-                  will appear in the worker&apos;s booking dashboard.
+                  {worker.name} has received your service request.
+                  The booking will appear in the worker&apos;s
+                  booking dashboard.
                 </p>
               </div>
             </div>

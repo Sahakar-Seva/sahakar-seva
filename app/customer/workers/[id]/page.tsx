@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 
 const worker = {
   id: 1,
   name: "Rahul Sharma",
   initials: "RS",
-  service: "Electrical Repair",
   rating: 4.8,
   reviews: 126,
   experience: "5 years",
@@ -19,37 +18,90 @@ const worker = {
   available: true,
   joined: "March 2023",
   about:
-    "Rahul is an experienced electrical service professional working with the Sahakar Seva cooperative. He specializes in household electrical repairs, installations and maintenance.",
-  services: [
-    {
-      name: "Electrical Repair",
-      price: "₹299 onwards",
-      duration: "1–2 hours",
-    },
-    {
-      name: "Wiring & Installation",
-      price: "₹699 onwards",
-      duration: "2–3 hours",
-    },
-    {
-      name: "Fan Installation",
-      price: "₹499 onwards",
-      duration: "Around 1 hour",
-    },
-    {
-      name: "Switch & Socket Repair",
-      price: "₹299 onwards",
-      duration: "Around 1 hour",
-    },
-  ],
+    "Rahul is an experienced service professional working with the Sahakar Seva cooperative. He provides reliable household services with a focus on quality, transparency and customer satisfaction.",
 };
+
+const services = [
+  {
+    id: "electrician",
+    name: "Electrical Repair",
+    price: "₹299 onwards",
+    duration: "1–2 hours",
+  },
+  {
+    id: "plumber",
+    name: "Plumbing",
+    price: "₹299 onwards",
+    duration: "1–2 hours",
+  },
+  {
+    id: "home-cleaning",
+    name: "Home Cleaning",
+    price: "₹399 onwards",
+    duration: "2–3 hours",
+  },
+  {
+    id: "carpenter",
+    name: "Carpentry",
+    price: "₹399 onwards",
+    duration: "1–3 hours",
+  },
+  {
+    id: "appliance-repair",
+    name: "Appliance Repair",
+    price: "₹399 onwards",
+    duration: "1–2 hours",
+  },
+  {
+    id: "painting",
+    name: "Painting",
+    price: "₹599 onwards",
+    duration: "3–5 hours",
+  },
+  {
+    id: "gardening",
+    name: "Gardening",
+    price: "₹299 onwards",
+    duration: "1–2 hours",
+  },
+  {
+    id: "ac-service",
+    name: "AC Service",
+    price: "₹499 onwards",
+    duration: "1–2 hours",
+  },
+  {
+    id: "pest-control",
+    name: "Pest Control",
+    price: "₹599 onwards",
+    duration: "1–2 hours",
+  },
+  {
+    id: "fan-installation",
+    name: "Fan Installation",
+    price: "₹499 onwards",
+    duration: "Around 1 hour",
+  },
+  {
+    id: "washing-machine-repair",
+    name: "Washing Machine Repair",
+    price: "₹399 onwards",
+    duration: "1–2 hours",
+  },
+  {
+    id: "furniture-assembly",
+    name: "Furniture Assembly",
+    price: "₹399 onwards",
+    duration: "1–3 hours",
+  },
+];
 
 const reviews = [
   {
     name: "Amit Verma",
     rating: 5,
     date: "2 weeks ago",
-    text: "Rahul arrived on time and fixed the electrical issue quickly. Very professional and polite.",
+    text: "Rahul arrived on time and completed the service quickly. Very professional and polite.",
   },
   {
     name: "Priya Mehta",
@@ -61,12 +113,18 @@ const reviews = [
     name: "Neha Kapoor",
     rating: 4,
     date: "2 months ago",
-    text: "The service was good and Rahul explained the issue clearly before starting the work.",
+    text: "The service was good and Rahul explained the work clearly before starting.",
   },
 ];
 
 export default function WorkerProfilePage() {
   const params = useParams();
+  const searchParams = useSearchParams();
+
+  const serviceId = searchParams.get("service");
+
+  const selectedService =
+    services.find((service) => service.id === serviceId) || services[0];
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900">
@@ -139,7 +197,7 @@ export default function WorkerProfilePage() {
           <span>›</span>
 
           <Link
-            href="/customer/workers"
+            href={`/customer/workers?service=${selectedService.id}`}
             className="hover:text-green-700"
           >
             Workers
@@ -173,7 +231,7 @@ export default function WorkerProfilePage() {
                 </div>
 
                 <p className="mt-2 text-gray-600">
-                  {worker.service} Specialist
+                  {selectedService.name} Specialist
                 </p>
 
                 <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
@@ -231,7 +289,7 @@ export default function WorkerProfilePage() {
               </p>
 
               <p className="mt-1 text-3xl font-bold">
-                ₹{worker.price}
+                {selectedService.price}
               </p>
 
               <p className="mt-1 text-xs text-gray-500">
@@ -239,7 +297,7 @@ export default function WorkerProfilePage() {
               </p>
 
               <Link
-                href={`/customer/book?worker=${params.id}&service=1`}
+                href={`/customer/book?worker=${params.id}&service=${selectedService.id}`}
                 className="mt-5 block w-full rounded-xl bg-green-700 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-green-800"
               >
                 Select Worker
@@ -306,49 +364,26 @@ export default function WorkerProfilePage() {
               </div>
             </div>
 
-            {/* Services */}
-            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-7">
-              <div className="flex items-center justify-between gap-4">
+            {/* Selected Service */}
+            <div className="rounded-2xl border border-green-100 bg-green-50 p-6 shadow-sm sm:p-7">
+              <h2 className="text-xl font-bold text-green-900">
+                Selected service
+              </h2>
+
+              <div className="mt-5 flex flex-col justify-between gap-4 rounded-xl border border-green-200 bg-white p-4 sm:flex-row sm:items-center">
                 <div>
-                  <h2 className="text-xl font-bold">
-                    Services offered
-                  </h2>
+                  <h3 className="font-semibold">
+                    {selectedService.name}
+                  </h3>
 
                   <p className="mt-1 text-sm text-gray-500">
-                    Choose the service you need from this worker.
+                    Estimated duration: {selectedService.duration}
                   </p>
                 </div>
 
-                <span className="hidden rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 sm:block">
-                  {worker.services.length} services
-                </span>
-              </div>
-
-              <div className="mt-5 space-y-3">
-                {worker.services.map((service, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col justify-between gap-4 rounded-xl border border-gray-100 bg-gray-50 p-4 sm:flex-row sm:items-center"
-                  >
-                    <div>
-                      <h3 className="font-semibold">
-                        {service.name}
-                      </h3>
-
-                      <p className="mt-1 text-sm text-gray-500">
-                        Estimated duration: {service.duration}
-                      </p>
-                    </div>
-
-                    <div className="text-left sm:text-right">
-                      <p className="font-bold">{service.price}</p>
-
-                      <button className="mt-1 text-xs font-semibold text-green-700 hover:text-green-800">
-                        Select service
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                <p className="font-bold">
+                  {selectedService.price}
+                </p>
               </div>
             </div>
 
@@ -503,12 +538,13 @@ export default function WorkerProfilePage() {
               </h2>
 
               <p className="mt-2 text-sm text-green-50">
-                Select a service and continue with your booking.
+                Book {selectedService.name} and continue with your
+                booking.
               </p>
             </div>
 
             <Link
-              href={`/customer/book?worker=${params.id}&service=1`}
+              href={`/customer/book?worker=${params.id}&service=${selectedService.id}`}
               className="rounded-xl bg-white px-6 py-3 text-center text-sm font-semibold text-green-700 transition hover:bg-green-50"
             >
               Select Worker →

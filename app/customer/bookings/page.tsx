@@ -1,7 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
+type StoredBooking = {
+  id: string;
+  customer: string;
+  service: string;
+  date: string;
+  time: string;
+  location: string;
+  amount: number;
+  status: "New" | "Upcoming" | "Completed" | "Cancelled";
+  phone: string;
+  worker: string;
+  workerId: string;
+  serviceId: string;
+};
 
 type Booking = {
   id: string;
@@ -15,18 +30,7 @@ type Booking = {
   status: "Upcoming" | "Completed" | "Cancelled";
 };
 
-const bookings: Booking[] = [
-  {
-    id: "SS-2026-00124",
-    service: "Electrical Repair",
-    category: "Repairs",
-    worker: "Rahul Sharma",
-    workerInitials: "RS",
-    date: "11 September 2026",
-    time: "10:00 AM",
-    price: "₹299",
-    status: "Upcoming",
-  },
+const demoBookings: Booking[] = [
   {
     id: "SS-2026-00118",
     service: "Home Cleaning",
@@ -64,14 +68,83 @@ const bookings: Booking[] = [
 
 export default function MyBookingsPage() {
   const router = useRouter();
+
   const [activeTab, setActiveTab] = useState("All");
+  const [bookings, setBookings] = useState<Booking[]>(demoBookings);
+
+  useEffect(() => {
+    const loadBookings = () => {
+      try {
+        const storedData = localStorage.getItem(
+          "sahakar-seva-bookings"
+        );
+
+        const storedBookings: StoredBooking[] = storedData
+          ? JSON.parse(storedData)
+          : [];
+
+        const formattedBookings: Booking[] = storedBookings.map(
+          (booking) => ({
+            id: booking.id,
+            service: booking.service,
+            category: "Service",
+            worker: booking.worker,
+            workerInitials: booking.worker
+              ? booking.worker
+                  .split(" ")
+                  .map((name) => name[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase()
+              : "SW",
+            date: booking.date,
+            time: booking.time,
+            price: `₹${booking.amount}`,
+            status:
+              booking.status === "New"
+                ? "Upcoming"
+                : booking.status,
+          })
+        );
+
+        setBookings([...formattedBookings, ...demoBookings]);
+      } catch (error) {
+        console.error("Error loading bookings:", error);
+        setBookings(demoBookings);
+      }
+    };
+
+    loadBookings();
+
+    window.addEventListener("focus", loadBookings);
+
+    return () => {
+      window.removeEventListener("focus", loadBookings);
+    };
+  }, []);
 
   const filteredBookings =
     activeTab === "All"
       ? bookings
-      : bookings.filter((booking) => booking.status === activeTab);
+      : bookings.filter(
+          (booking) => booking.status === activeTab
+        );
 
-  const getStatusStyle = (status: Booking["status"]) => {
+  const upcomingCount = bookings.filter(
+    (booking) => booking.status === "Upcoming"
+  ).length;
+
+  const completedCount = bookings.filter(
+    (booking) => booking.status === "Completed"
+  ).length;
+
+  const cancelledCount = bookings.filter(
+    (booking) => booking.status === "Cancelled"
+  ).length;
+
+  const getStatusStyle = (
+    status: Booking["status"]
+  ) => {
     if (status === "Upcoming") {
       return "bg-blue-50 text-blue-700 border-blue-200";
     }
@@ -85,7 +158,6 @@ export default function MyBookingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
           <button
@@ -104,7 +176,9 @@ export default function MyBookingsPage() {
             </button>
 
             <button
-              onClick={() => router.push("/customer/services")}
+              onClick={() =>
+                router.push("/customer/services")
+              }
               className="text-gray-600 hover:text-green-700"
             >
               Services
@@ -127,9 +201,7 @@ export default function MyBookingsPage() {
         </div>
       </header>
 
-      {/* Main */}
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        {/* Heading */}
         <div>
           <p className="text-sm font-medium text-green-600">
             Customer Dashboard
@@ -144,27 +216,45 @@ export default function MyBookingsPage() {
           </p>
         </div>
 
-        {/* Summary Cards */}
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="rounded-xl border bg-white p-5 shadow-sm">
-            <p className="text-sm text-gray-500">Upcoming</p>
-            <p className="mt-2 text-2xl font-bold text-gray-900">1</p>
+            <p className="text-sm text-gray-500">
+              Upcoming
+            </p>
+
+            <p className="mt-2 text-2xl font-bold text-gray-900">
+              {upcomingCount}
+            </p>
           </div>
 
           <div className="rounded-xl border bg-white p-5 shadow-sm">
-            <p className="text-sm text-gray-500">Completed</p>
-            <p className="mt-2 text-2xl font-bold text-gray-900">2</p>
+            <p className="text-sm text-gray-500">
+              Completed
+            </p>
+
+            <p className="mt-2 text-2xl font-bold text-gray-900">
+              {completedCount}
+            </p>
           </div>
 
           <div className="rounded-xl border bg-white p-5 shadow-sm">
-            <p className="text-sm text-gray-500">Cancelled</p>
-            <p className="mt-2 text-2xl font-bold text-gray-900">1</p>
+            <p className="text-sm text-gray-500">
+              Cancelled
+            </p>
+
+            <p className="mt-2 text-2xl font-bold text-gray-900">
+              {cancelledCount}
+            </p>
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="mt-8 flex gap-2 overflow-x-auto border-b">
-          {["All", "Upcoming", "Completed", "Cancelled"].map((tab) => (
+          {[
+            "All",
+            "Upcoming",
+            "Completed",
+            "Cancelled",
+          ].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -179,14 +269,12 @@ export default function MyBookingsPage() {
           ))}
         </div>
 
-        {/* Booking List */}
         <div className="mt-6 space-y-4">
           {filteredBookings.map((booking) => (
             <div
               key={booking.id}
               className="rounded-2xl border bg-white p-5 shadow-sm"
             >
-              {/* Top Section */}
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-start gap-4">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-100 font-semibold text-green-700">
@@ -220,10 +308,11 @@ export default function MyBookingsPage() {
                 </span>
               </div>
 
-              {/* Booking Details */}
               <div className="mt-5 grid grid-cols-1 gap-4 border-t pt-5 sm:grid-cols-3">
                 <div>
-                  <p className="text-xs text-gray-500">Date & Time</p>
+                  <p className="text-xs text-gray-500">
+                    Date & Time
+                  </p>
 
                   <p className="mt-1 text-sm font-medium text-gray-900">
                     {booking.date}
@@ -235,7 +324,9 @@ export default function MyBookingsPage() {
                 </div>
 
                 <div>
-                  <p className="text-xs text-gray-500">Booking ID</p>
+                  <p className="text-xs text-gray-500">
+                    Booking ID
+                  </p>
 
                   <p className="mt-1 text-sm font-medium text-gray-900">
                     {booking.id}
@@ -243,7 +334,9 @@ export default function MyBookingsPage() {
                 </div>
 
                 <div>
-                  <p className="text-xs text-gray-500">Amount</p>
+                  <p className="text-xs text-gray-500">
+                    Amount
+                  </p>
 
                   <p className="mt-1 text-lg font-bold text-gray-900">
                     {booking.price}
@@ -251,11 +344,12 @@ export default function MyBookingsPage() {
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="mt-5 flex flex-col gap-3 border-t pt-5 sm:flex-row sm:justify-end">
                 <button
                   onClick={() =>
-                    router.push(`/customer/bookings/${booking.id}`)
+                    router.push(
+                      `/customer/bookings/${booking.id}`
+                    )
                   }
                   className="rounded-lg bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700"
                 >
@@ -264,7 +358,9 @@ export default function MyBookingsPage() {
 
                 {booking.status === "Upcoming" && (
                   <button
-                    onClick={() => router.push("/customer/services")}
+                    onClick={() =>
+                      router.push("/customer/services")
+                    }
                     className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                   >
                     Book Another Service
@@ -274,7 +370,9 @@ export default function MyBookingsPage() {
                 {booking.status === "Completed" && (
                   <button
                     onClick={() =>
-                      router.push("/customer/review/1")
+                      router.push(
+                        `/customer/review/${booking.id}`
+                      )
                     }
                     className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                   >
@@ -286,7 +384,6 @@ export default function MyBookingsPage() {
           ))}
         </div>
 
-        {/* Empty State */}
         {filteredBookings.length === 0 && (
           <div className="mt-6 rounded-2xl border bg-white px-6 py-14 text-center">
             <div className="text-4xl">📋</div>
@@ -300,7 +397,9 @@ export default function MyBookingsPage() {
             </p>
 
             <button
-              onClick={() => router.push("/customer/services")}
+              onClick={() =>
+                router.push("/customer/services")
+              }
               className="mt-6 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700"
             >
               Explore Services
@@ -308,15 +407,14 @@ export default function MyBookingsPage() {
           </div>
         )}
 
-        {/* Trust Section */}
         <div className="mt-10 rounded-2xl border border-green-100 bg-green-50 p-6 text-center">
           <h3 className="font-semibold text-gray-900">
             Your bookings are in safe hands
           </h3>
 
           <p className="mt-2 text-sm text-gray-600">
-            All service providers on Sahakar Seva are verified cooperative
-            workers.
+            All service providers on Sahakar Seva are verified
+            cooperative workers.
           </p>
         </div>
       </main>
