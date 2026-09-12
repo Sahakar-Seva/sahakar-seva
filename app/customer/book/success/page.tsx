@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
 type Booking = {
   id: string;
@@ -52,13 +51,13 @@ const workers = [
 ];
 
 export default function BookingSuccessPage() {
-  const searchParams = useSearchParams();
+  const [workerId, setWorkerId] = useState("1");
+  const [serviceId, setServiceId] = useState("electrician");
+  const [date, setDate] = useState("11 Sep 2026");
+  const [time, setTime] = useState("10:00 AM");
 
-  const workerId = searchParams.get("worker") || "1";
-  const serviceId =
-    searchParams.get("service") || "electrician";
-  const date = searchParams.get("date") || "11 Sep 2026";
-  const time = searchParams.get("time") || "10:00 AM";
+  const [copied, setCopied] = useState(false);
+  const [bookingId, setBookingId] = useState("");
 
   const service =
     services.find((item) => item.id === serviceId) || services[0];
@@ -66,8 +65,20 @@ export default function BookingSuccessPage() {
   const worker =
     workers.find((item) => item.id === workerId) || workers[0];
 
-  const [copied, setCopied] = useState(false);
-  const [bookingId, setBookingId] = useState("");
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    const currentWorkerId = params.get("worker") || "1";
+    const currentServiceId =
+      params.get("service") || "electrician";
+    const currentDate = params.get("date") || "11 Sep 2026";
+    const currentTime = params.get("time") || "10:00 AM";
+
+    setWorkerId(currentWorkerId);
+    setServiceId(currentServiceId);
+    setDate(currentDate);
+    setTime(currentTime);
+  }, []);
 
   useEffect(() => {
     const newBookingId = `SS-${new Date().getFullYear()}-${Date.now()
@@ -76,9 +87,15 @@ export default function BookingSuccessPage() {
 
     setBookingId(newBookingId);
 
-    const existingBookings: Booking[] = JSON.parse(
-      localStorage.getItem("sahakar-seva-bookings") || "[]"
-    );
+    let existingBookings: Booking[] = [];
+
+    try {
+      existingBookings = JSON.parse(
+        localStorage.getItem("sahakar-seva-bookings") || "[]"
+      );
+    } catch {
+      existingBookings = [];
+    }
 
     const newBooking: Booking = {
       id: newBookingId,
@@ -100,14 +117,7 @@ export default function BookingSuccessPage() {
       "sahakar-seva-bookings",
       JSON.stringify([...existingBookings, newBooking])
     );
-  }, [
-    date,
-    time,
-    workerId,
-    worker,
-    service,
-    serviceId,
-  ]);
+  }, [date, time, workerId, worker, service, serviceId]);
 
   const copyBookingId = async () => {
     if (!bookingId) return;

@@ -1,7 +1,7 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const services = [
   {
@@ -190,13 +190,18 @@ const workers = [
 ];
 
 export default function BookingPage() {
-  const searchParams = useSearchParams();
   const router = useRouter();
 
-  const workerId = searchParams.get("worker") || "1";
-  const serviceId = searchParams.get("service") || "electrician";
-
+  const [workerId, setWorkerId] = useState("1");
+  const [serviceId, setServiceId] = useState("electrician");
   const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    setWorkerId(params.get("worker") || "1");
+    setServiceId(params.get("service") || "electrician");
+  }, []);
 
   const service =
     services.find((item) => item.id === serviceId) || services[0];

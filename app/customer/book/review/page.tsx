@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const services = [
   {
@@ -172,12 +173,20 @@ const workers = [
 
 export default function BookingReviewPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const workerId = searchParams.get("worker") || "1";
-  const serviceId = searchParams.get("service") || "electrician";
-  const selectedDate = searchParams.get("date") || "11";
-  const selectedTime = searchParams.get("time") || "10:00 AM";
+  const [workerId, setWorkerId] = useState("1");
+  const [serviceId, setServiceId] = useState("electrician");
+  const [selectedDate, setSelectedDate] = useState("11");
+  const [selectedTime, setSelectedTime] = useState("10:00 AM");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    setWorkerId(params.get("worker") || "1");
+    setServiceId(params.get("service") || "electrician");
+    setSelectedDate(params.get("date") || "11");
+    setSelectedTime(params.get("time") || "10:00 AM");
+  }, []);
 
   const service =
     services.find((item) => item.id === serviceId) || services[0];
@@ -276,7 +285,6 @@ export default function BookingReviewPage() {
 
         <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <div className="space-y-6">
-            {/* Service & Worker */}
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">
@@ -347,7 +355,6 @@ export default function BookingReviewPage() {
               </div>
             </section>
 
-            {/* Location */}
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">
@@ -395,7 +402,6 @@ export default function BookingReviewPage() {
               </div>
             </section>
 
-            {/* Date & Time */}
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">
@@ -442,7 +448,6 @@ export default function BookingReviewPage() {
               </div>
             </section>
 
-            {/* Service Instructions */}
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-lg font-semibold">
                 Service Instructions
@@ -460,7 +465,6 @@ export default function BookingReviewPage() {
               </p>
             </section>
 
-            {/* Cancellation */}
             <section className="rounded-2xl border border-gray-200 bg-white p-6">
               <div className="flex gap-3">
                 <div className="text-xl">ℹ️</div>
@@ -486,7 +490,6 @@ export default function BookingReviewPage() {
             </section>
           </div>
 
-          {/* Right Summary */}
           <aside>
             <div className="sticky top-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-lg font-semibold">

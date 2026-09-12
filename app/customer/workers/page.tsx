@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const workers = [
   {
@@ -100,9 +100,14 @@ const services = [
 ];
 
 export default function AvailableWorkersPage() {
-  const searchParams = useSearchParams();
+  const [serviceId, setServiceId] = useState("electrician");
 
-  const serviceId = searchParams.get("service");
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const currentServiceId = params.get("service") || "electrician";
+
+    setServiceId(currentServiceId);
+  }, []);
 
   const selectedService =
     services.find((service) => service.id === serviceId) || services[0];
@@ -199,6 +204,7 @@ export default function AvailableWorkersPage() {
 
           <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
             <span>📍</span>
+
             <div>
               <p className="text-xs text-gray-500">Service location</p>
               <p className="text-sm font-semibold">Delhi</p>
@@ -291,9 +297,11 @@ export default function AvailableWorkersPage() {
               <div className="mt-5 flex flex-wrap items-center gap-4 text-sm">
                 <span className="flex items-center gap-1">
                   <span>⭐</span>
+
                   <span className="font-semibold">
                     {worker.rating}
                   </span>
+
                   <span className="text-gray-500">
                     ({worker.reviews})
                   </span>
@@ -333,14 +341,14 @@ export default function AvailableWorkersPage() {
               {/* Actions */}
               <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href={`/customer/workers/${worker.id}?service=${serviceId || "electrician"}`}
+                  href={`/customer/workers/${worker.id}?service=${serviceId}`}
                   className="flex-1 rounded-xl border border-green-700 px-4 py-3 text-center text-sm font-semibold text-green-700 transition hover:bg-green-50"
                 >
                   View profile
                 </Link>
 
                 <Link
-                  href={`/customer/book?worker=${worker.id}&service=${serviceId || "electrician"}`}
+                  href={`/customer/book?worker=${worker.id}&service=${serviceId}`}
                   className={`flex-1 rounded-xl px-4 py-3 text-center text-sm font-semibold text-white transition ${
                     worker.available
                       ? "bg-green-700 hover:bg-green-800"
@@ -364,6 +372,7 @@ export default function AvailableWorkersPage() {
 
               <div>
                 <h3 className="font-semibold">Verified workers</h3>
+
                 <p className="mt-1 text-sm leading-5 text-gray-500">
                   Workers are verified through the cooperative platform.
                 </p>
@@ -377,6 +386,7 @@ export default function AvailableWorkersPage() {
 
               <div>
                 <h3 className="font-semibold">Real ratings</h3>
+
                 <p className="mt-1 text-sm leading-5 text-gray-500">
                   Compare ratings and reviews from previous customers.
                 </p>
@@ -390,6 +400,7 @@ export default function AvailableWorkersPage() {
 
               <div>
                 <h3 className="font-semibold">Community first</h3>
+
                 <p className="mt-1 text-sm leading-5 text-gray-500">
                   Your booking supports the cooperative service
                   ecosystem.

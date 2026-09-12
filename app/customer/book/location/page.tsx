@@ -1,18 +1,23 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function BookingLocationPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const workerId = searchParams.get("worker") || "1";
-  const serviceId = searchParams.get("service") || "1";
-
+  const [workerId, setWorkerId] = useState("1");
+  const [serviceId, setServiceId] = useState("electrician");
   const [selectedAddress, setSelectedAddress] = useState("home");
   const [landmark, setLandmark] = useState("");
   const [instructions, setInstructions] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    setWorkerId(params.get("worker") || "1");
+    setServiceId(params.get("service") || "electrician");
+  }, []);
 
   const handleContinue = () => {
     router.push(

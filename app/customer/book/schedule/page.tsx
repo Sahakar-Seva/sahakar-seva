@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const dates = [
   { day: "Today", date: "11", month: "Sep" },
@@ -54,13 +54,18 @@ const workers = [
 
 export default function BookingSchedulePage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const workerId = searchParams.get("worker") || "1";
-  const serviceId = searchParams.get("service") || "electrician";
-
+  const [workerId, setWorkerId] = useState("1");
+  const [serviceId, setServiceId] = useState("electrician");
   const [selectedDate, setSelectedDate] = useState("11");
   const [selectedTime, setSelectedTime] = useState("10:00 AM");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    setWorkerId(params.get("worker") || "1");
+    setServiceId(params.get("service") || "electrician");
+  }, []);
 
   const service =
     services.find((item) => item.id === serviceId) || services[0];

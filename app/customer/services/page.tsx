@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { getActiveServices } from "../../../Firebase/firestore";
+import type { ServiceItem } from "../../../Firebase/types";
 
 const categories = [
   {
@@ -42,116 +44,14 @@ const categories = [
   },
 ];
 
-const services = [
-  {
-    name: "Electrician",
-    category: "Repairs",
-    icon: "⚡",
-    description: "Electrical repairs, wiring and installations",
-    startingPrice: "₹299",
-    workers: 28,
-    rating: "4.8",
-  },
-  {
-    name: "Plumber",
-    category: "Repairs",
-    icon: "🔧",
-    description: "Plumbing repairs, fittings and installations",
-    startingPrice: "₹349",
-    workers: 31,
-    rating: "4.7",
-  },
-  {
-    name: "Home Cleaning",
-    category: "Cleaning",
-    icon: "✨",
-    description: "Professional home and deep cleaning services",
-    startingPrice: "₹499",
-    workers: 42,
-    rating: "4.8",
-  },
-  {
-    name: "Carpenter",
-    category: "Home Improvement",
-    icon: "🪚",
-    description: "Furniture repair, installation and woodwork",
-    startingPrice: "₹399",
-    workers: 19,
-    rating: "4.6",
-  },
-  {
-    name: "Appliance Repair",
-    category: "Appliance Services",
-    icon: "🔌",
-    description: "Repair and maintenance of household appliances",
-    startingPrice: "₹399",
-    workers: 19,
-    rating: "4.5",
-  },
-  {
-    name: "Painting",
-    category: "Home Improvement",
-    icon: "🎨",
-    description: "Interior and exterior painting services",
-    startingPrice: "₹599",
-    workers: 17,
-    rating: "4.4",
-  },
-  {
-    name: "Gardening",
-    category: "Outdoor Services",
-    icon: "🌱",
-    description: "Garden maintenance and plant care",
-    startingPrice: "₹299",
-    workers: 24,
-    rating: "4.8",
-  },
-  {
-    name: "AC Service",
-    category: "Appliance Services",
-    icon: "❄️",
-    description: "AC servicing, cleaning and maintenance",
-    startingPrice: "₹499",
-    workers: 15,
-    rating: "4.6",
-  },
-  {
-    name: "Pest Control",
-    category: "Home Services",
-    icon: "🛡️",
-    description: "Safe pest control for your home",
-    startingPrice: "₹599",
-    workers: 8,
-    rating: "4.2",
-  },
-  {
-    name: "Fan Installation",
-    category: "Home Services",
-    icon: "🌀",
-    description: "Ceiling and wall fan installation services",
-    startingPrice: "₹299",
-    workers: 14,
-    rating: "4.7",
-  },
-  {
-    name: "Washing Machine Repair",
-    category: "Appliance Services",
-    icon: "🧺",
-    description: "Washing machine repair and maintenance",
-    startingPrice: "₹399",
-    workers: 11,
-    rating: "4.5",
-  },
-  {
-    name: "Furniture Assembly",
-    category: "Home Improvement",
-    icon: "🪑",
-    description: "Furniture assembly and installation",
-    startingPrice: "₹299",
-    workers: 13,
-    rating: "4.6",
-  },
-];
+const fallbackIcons: Record<string, string> = {
+  "Home Services": "🏠",
+  Repairs: "🔧",
+  Cleaning: "✨",
+  "Home Improvement": "🎨",
+  "Appliance Services": "🔌",
+  "Outdoor Services": "🌱",
+};
 
 function BellIcon() {
   return (
@@ -201,6 +101,30 @@ function SearchIcon() {
 export default function CustomerServices() {
   const [activeCategory, setActiveCategory] = useState("All Services");
   const [searchTerm, setSearchTerm] = useState("");
+
+  const [services, setServices] = useState<ServiceItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const loadServices = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const activeServices = await getActiveServices();
+
+        setServices(activeServices);
+      } catch (err) {
+        console.error("Failed to load services:", err);
+        setError("Unable to load services. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadServices();
+  }, []);
 
   const filteredServices = services.filter((service) => {
     const matchesCategory =
@@ -353,7 +277,9 @@ export default function CustomerServices() {
               </h3>
 
               <p className="mt-1 text-sm text-gray-500">
-                {filteredServices.length} services available in your area.
+                {loading
+                  ? "Loading services..."
+                  : `${filteredServices.length} services available in your area.`}
               </p>
             </div>
 
@@ -382,74 +308,101 @@ export default function CustomerServices() {
             </div>
           </div>
 
+          {/* Loading State */}
+          {loading && (
+            <div className="rounded-2xl border border-gray-200 bg-white px-6 py-16 text-center">
+              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-green-700" />
+
+              <p className="mt-4 text-sm text-gray-500">
+                Loading available services...
+              </p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {!loading && error && (
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-16 text-center">
+              <div className="text-4xl">⚠️</div>
+
+              <h4 className="mt-4 text-lg font-semibold text-gray-900">
+                Unable to load services
+              </h4>
+
+              <p className="mt-2 text-sm text-gray-500">
+                {error}
+              </p>
+            </div>
+          )}
+
           {/* Service Cards */}
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredServices.map((service) => (
-              <div
-                key={service.name}
-                className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-50 text-2xl">
-                    {service.icon}
+          {!loading && !error && filteredServices.length > 0 && (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredServices.map((service) => (
+                <div
+                  key={service.serviceId}
+                  className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-50 text-2xl">
+                      {fallbackIcons[service.category] || "🛠️"}
+                    </div>
+
+                    <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
+                      Verified
+                    </span>
                   </div>
 
-                  <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
-                    Verified
-                  </span>
-                </div>
+                  <h4 className="mt-5 text-lg font-semibold text-gray-900">
+                    {service.name}
+                  </h4>
 
-                <h4 className="mt-5 text-lg font-semibold text-gray-900">
-                  {service.name}
-                </h4>
-
-                <p className="mt-2 min-h-10 text-sm leading-5 text-gray-500">
-                  {service.description}
-                </p>
-
-                <div className="mt-5 grid grid-cols-2 gap-4 border-y border-gray-100 py-4">
-                  <div>
-                    <p className="text-xs text-gray-400">
-                      Starting from
-                    </p>
-
-                    <p className="mt-1 text-lg font-bold text-gray-900">
-                      {service.startingPrice}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs text-gray-400">
-                      Rating
-                    </p>
-
-                    <p className="mt-1 text-sm font-semibold text-gray-900">
-                      ★ {service.rating}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex items-center justify-between">
-                  <p className="text-xs text-gray-500">
-                    {service.workers} verified workers
+                  <p className="mt-2 min-h-10 text-sm leading-5 text-gray-500">
+                    {service.description}
                   </p>
-                  <Link
-  href={`/customer/services/${service.name
-    .toLowerCase()
-    .replace(/\s+/g, "-")}`}
-  className="rounded-xl bg-green-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800"
->
-  View service
-</Link>
 
+                  <div className="mt-5 grid grid-cols-2 gap-4 border-y border-gray-100 py-4">
+                    <div>
+                      <p className="text-xs text-gray-400">
+                        Starting from
+                      </p>
 
+                      <p className="mt-1 text-lg font-bold text-gray-900">
+                        ₹{service.price}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-gray-400">
+                        Rating
+                      </p>
+
+                      <p className="mt-1 text-sm font-semibold text-gray-900">
+                        ★ 4.8
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between">
+                    <p className="text-xs text-gray-500">
+                      Verified cooperative worker
+                    </p>
+
+                    <Link
+                      href={`/customer/services/${service.name
+                        .toLowerCase()
+                        .replace(/\s+/g, "-")}`}
+                      className="rounded-xl bg-green-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800"
+                    >
+                      View service
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           {/* Empty State */}
-          {filteredServices.length === 0 && (
+          {!loading && !error && filteredServices.length === 0 && (
             <div className="rounded-2xl border border-gray-200 bg-white px-6 py-16 text-center">
               <div className="text-4xl">🔍</div>
 
