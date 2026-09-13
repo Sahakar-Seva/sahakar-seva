@@ -182,6 +182,14 @@ export async function getBooking(bookingId: string): Promise<Booking | null> {
 
   return docSnap.data() as Booking;
 }
+export async function getAllBookings(): Promise<Booking[]> {
+  const bookingsRef = collection(db, "bookings");
+  const snapshot = await getDocs(bookingsRef);
+
+  return snapshot.docs.map(
+    (docSnap) => docSnap.data() as Booking
+  );
+}
 
 /**
  * Customer creates a new service booking request

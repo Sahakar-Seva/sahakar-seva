@@ -2,20 +2,56 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { loginUser, getUserProfile } from "@/Firebase/auth";
 
 export default function WorkerLogin() {
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Temporary worker selection for prototype testing.
-    // Rahul = 1
-    // Suresh = 2
-    const workerId = phone.endsWith("2") ? "2" : "1";
+    setError("");
+    setLoading(true);
 
-    window.location.href = `/worker/dashboard?worker=${workerId}`;
+    try {
+      const user = await loginUser(email, password);
+      const profile = await getUserProfile(user.uid);
+
+      if (!profile) {
+        setError("User profile not found.");
+        setLoading(false);
+        return;
+      }
+
+      // RBAC: only workers can use worker login
+      if (profile.role !== "worker") {
+        setError(
+          `This account is registered as ${profile.role}. Please use the correct login.`
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Use Firebase UID instead of fake worker IDs
+      window.location.href = `/worker/dashboard?worker=${user.uid}`;
+    } catch (err: any) {
+      console.error("Worker login error:", err);
+
+      if (
+        err?.code === "auth/invalid-credential" ||
+        err?.code === "auth/wrong-password" ||
+        err?.code === "auth/user-not-found"
+      ) {
+        setError("Invalid email or password.");
+      } else {
+        setError(err?.message || "Login failed. Please try again.");
+      }
+
+      setLoading(false);
+    }
   };
 
   return (
@@ -56,21 +92,21 @@ export default function WorkerLogin() {
             </div>
 
             <form onSubmit={handleLogin} className="mt-8 space-y-5">
-              {/* Phone */}
+              {/* Email */}
               <div>
                 <label
-                  htmlFor="phone"
+                  htmlFor="email"
                   className="mb-2 block text-sm font-medium text-gray-700"
                 >
-                  Phone Number
+                  Email Address
                 </label>
 
                 <input
-                  id="phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Enter your phone number"
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
                   required
                   className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
@@ -96,19 +132,26 @@ export default function WorkerLogin() {
                 />
               </div>
 
+              {/* Error */}
+              {error && (
+                <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
+
               {/* Login Button */}
               <button
                 type="submit"
-                className="w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700"
+                disabled={loading}
+                className="w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Login as Worker
+                {loading ? "Signing in..." : "Login as Worker"}
               </button>
             </form>
 
-            {/* Temporary Testing Info */}
+            {/* Firebase Auth Info */}
             <div className="mt-6 rounded-lg bg-blue-50 p-4 text-center text-sm text-blue-700">
-              For testing, use a phone number ending in <strong>2</strong>{" "}
-              for Suresh. Any other number opens Rahul&apos;s account.
+              Use your registered worker email and password.
             </div>
 
             {/* Switch Role */}

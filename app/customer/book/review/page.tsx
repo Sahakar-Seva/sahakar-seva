@@ -176,16 +176,30 @@ export default function BookingReviewPage() {
 
   const [workerId, setWorkerId] = useState("1");
   const [serviceId, setServiceId] = useState("electrician");
-  const [selectedDate, setSelectedDate] = useState("11");
+  const [selectedDate, setSelectedDate] = useState("14");
   const [selectedTime, setSelectedTime] = useState("10:00 AM");
+
+  const [address, setAddress] = useState(
+    "Flat 204, Green Residency, Sector 12, Dwarka, New Delhi"
+  );
+  const [landmark, setLandmark] = useState("");
+  const [instructions, setInstructions] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
     setWorkerId(params.get("worker") || "1");
     setServiceId(params.get("service") || "electrician");
-    setSelectedDate(params.get("date") || "11");
+    setSelectedDate(params.get("date") || "14");
     setSelectedTime(params.get("time") || "10:00 AM");
+
+    setAddress(
+      params.get("address") ||
+        "Flat 204, Green Residency, Sector 12, Dwarka, New Delhi"
+    );
+
+    setLandmark(params.get("landmark") || "");
+    setInstructions(params.get("instructions") || "");
   }, []);
 
   const service =
@@ -198,30 +212,39 @@ export default function BookingReviewPage() {
     string,
     { day: string; month: string }
   > = {
-    "11": { day: "Today", month: "September" },
-    "12": { day: "Saturday", month: "September" },
-    "13": { day: "Sunday", month: "September" },
     "14": { day: "Monday", month: "September" },
     "15": { day: "Tuesday", month: "September" },
     "16": { day: "Wednesday", month: "September" },
     "17": { day: "Thursday", month: "September" },
+    "18": { day: "Friday", month: "September" },
+    "19": { day: "Saturday", month: "September" },
+    "20": { day: "Sunday", month: "September" },
   };
 
   const dateInfo = dateDetails[selectedDate] || {
-    day: "Today",
+    day: "Monday",
     month: "September",
   };
 
   const handleConfirm = () => {
     router.push(
-      `/customer/book/success?worker=${workerId}&service=${serviceId}&date=${selectedDate}&time=${encodeURIComponent(
+      `/customer/book/success?worker=${workerId}&service=${serviceId}&date=${encodeURIComponent(
+        selectedDate
+      )}&time=${encodeURIComponent(
         selectedTime
+      )}&address=${encodeURIComponent(
+        address
+      )}&landmark=${encodeURIComponent(
+        landmark
+      )}&instructions=${encodeURIComponent(
+        instructions
       )}`
     );
   };
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
+      {/* Header */}
       <header className="border-b border-gray-100 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <button
@@ -243,6 +266,7 @@ export default function BookingReviewPage() {
         </div>
       </header>
 
+      {/* Progress */}
       <div className="border-b bg-white">
         <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6">
           <div className="flex items-center justify-between text-xs sm:text-sm">
@@ -265,6 +289,7 @@ export default function BookingReviewPage() {
         </div>
       </div>
 
+      {/* Main */}
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
         <button
           onClick={() => router.back()}
@@ -285,6 +310,7 @@ export default function BookingReviewPage() {
 
         <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <div className="space-y-6">
+            {/* Service & Worker */}
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">
@@ -355,6 +381,7 @@ export default function BookingReviewPage() {
               </div>
             </section>
 
+            {/* Location */}
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">
@@ -379,14 +406,10 @@ export default function BookingReviewPage() {
                 </div>
 
                 <div>
-                  <p className="font-semibold">Home</p>
+                  <p className="font-semibold">Service Address</p>
 
                   <p className="mt-1 text-sm leading-6 text-gray-600">
-                    Flat 204, Green Residency,
-                    <br />
-                    Sector 12, Dwarka,
-                    <br />
-                    New Delhi - 110075
+                    {address}
                   </p>
                 </div>
               </div>
@@ -397,11 +420,12 @@ export default function BookingReviewPage() {
                 </p>
 
                 <p className="mt-1 text-sm text-gray-700">
-                  Near Metro Station
+                  {landmark || "No landmark provided"}
                 </p>
               </div>
             </section>
 
+            {/* Date & Time */}
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">
@@ -411,7 +435,13 @@ export default function BookingReviewPage() {
                 <button
                   onClick={() =>
                     router.push(
-                      `/customer/book/schedule?worker=${workerId}&service=${serviceId}`
+                      `/customer/book/schedule?worker=${workerId}&service=${serviceId}&address=${encodeURIComponent(
+                        address
+                      )}&landmark=${encodeURIComponent(
+                        landmark
+                      )}&instructions=${encodeURIComponent(
+                        instructions
+                      )}`
                     )
                   }
                   className="text-sm font-medium text-green-700 hover:underline"
@@ -425,7 +455,9 @@ export default function BookingReviewPage() {
                   <div className="text-xl">📅</div>
 
                   <div>
-                    <p className="text-xs text-gray-500">Date</p>
+                    <p className="text-xs text-gray-500">
+                      Date
+                    </p>
 
                     <p className="mt-1 font-semibold">
                       {dateInfo.day}, {selectedDate}{" "}
@@ -438,7 +470,9 @@ export default function BookingReviewPage() {
                   <div className="text-xl">🕐</div>
 
                   <div>
-                    <p className="text-xs text-gray-500">Time</p>
+                    <p className="text-xs text-gray-500">
+                      Time
+                    </p>
 
                     <p className="mt-1 font-semibold text-green-700">
                       {selectedTime}
@@ -448,6 +482,7 @@ export default function BookingReviewPage() {
               </div>
             </section>
 
+            {/* Instructions */}
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-lg font-semibold">
                 Service Instructions
@@ -455,16 +490,18 @@ export default function BookingReviewPage() {
 
               <div className="mt-4 rounded-xl bg-gray-50 p-4">
                 <p className="text-sm leading-6 text-gray-600">
-                  Please call when you reach the main gate.
+                  {instructions ||
+                    "No additional instructions provided."}
                 </p>
               </div>
 
               <p className="mt-2 text-xs text-gray-400">
-                You can share additional requirements with the worker
-                after booking.
+                Additional requirements can be shared with the
+                worker after booking.
               </p>
             </section>
 
+            {/* Before Confirm */}
             <section className="rounded-2xl border border-gray-200 bg-white p-6">
               <div className="flex gap-3">
                 <div className="text-xl">ℹ️</div>
@@ -478,11 +515,14 @@ export default function BookingReviewPage() {
                     <li>
                       • The worker will be notified after confirmation.
                     </li>
+
                     <li>
                       • You can cancel or reschedule your booking later.
                     </li>
+
                     <li>
-                      • Final pricing may vary depending on the actual work required.
+                      • Final pricing may vary depending on the actual
+                      work required.
                     </li>
                   </ul>
                 </div>
@@ -490,6 +530,7 @@ export default function BookingReviewPage() {
             </section>
           </div>
 
+          {/* Price Summary */}
           <aside>
             <div className="sticky top-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-lg font-semibold">
@@ -561,6 +602,7 @@ export default function BookingReviewPage() {
         </div>
       </main>
 
+      {/* Footer */}
       <footer className="border-t bg-white">
         <div className="mx-auto max-w-7xl px-4 py-6 text-center text-sm text-gray-500">
           © 2026 Sahakar Seva · Trusted cooperative services

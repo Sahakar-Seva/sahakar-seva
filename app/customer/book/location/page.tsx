@@ -19,11 +19,22 @@ export default function BookingLocationPage() {
     setServiceId(params.get("service") || "electrician");
   }, []);
 
-  const handleContinue = () => {
-    router.push(
-      `/customer/book/schedule?worker=${workerId}&service=${serviceId}`
-    );
-  };
+const handleContinue = () => {
+  const address =
+    selectedAddress === "home"
+      ? "Flat 204, Green Residency, Sector 12, Dwarka, New Delhi"
+      : "3rd Floor, Business Hub, Sector 10, Dwarka, New Delhi";
+
+  router.push(
+    `/customer/book/schedule?worker=${workerId}&service=${serviceId}&address=${encodeURIComponent(
+      address
+    )}&landmark=${encodeURIComponent(
+      landmark
+    )}&instructions=${encodeURIComponent(
+      instructions
+    )}`
+  );
+};
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">

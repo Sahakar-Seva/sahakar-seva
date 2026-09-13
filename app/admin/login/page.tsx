@@ -2,17 +2,56 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { loginUser, getUserProfile } from "@/Firebase/auth";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Temporary login flow.
-    // Firebase authentication will be connected later.
-    window.location.href = "/admin/dashboard";
+    setError("");
+    setLoading(true);
+
+    try {
+      const user = await loginUser(email, password);
+      const profile = await getUserProfile(user.uid);
+
+      if (!profile) {
+        setError("User profile not found.");
+        setLoading(false);
+        return;
+      }
+
+      // RBAC: only admins can use admin login
+      if (profile.role !== "admin") {
+        setError(
+          `This account is registered as ${profile.role}. Please use the correct login.`
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Admin is authenticated and has the correct role
+      window.location.href = "/admin/dashboard";
+    } catch (err: any) {
+      console.error("Admin login error:", err);
+
+      if (
+        err?.code === "auth/invalid-credential" ||
+        err?.code === "auth/wrong-password" ||
+        err?.code === "auth/user-not-found"
+      ) {
+        setError("Invalid email or password.");
+      } else {
+        setError(err?.message || "Login failed. Please try again.");
+      }
+
+      setLoading(false);
+    }
   };
 
   return (
@@ -93,18 +132,26 @@ export default function AdminLogin() {
                 />
               </div>
 
+              {/* Error */}
+              {error && (
+                <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
+
               {/* Login Button */}
               <button
                 type="submit"
-                className="w-full rounded-lg bg-purple-600 px-4 py-3 font-semibold text-white transition hover:bg-purple-700"
+                disabled={loading}
+                className="w-full rounded-lg bg-purple-600 px-4 py-3 font-semibold text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Login as Admin
+                {loading ? "Signing in..." : "Login as Admin"}
               </button>
             </form>
 
             {/* Info */}
             <div className="mt-6 rounded-lg bg-purple-50 p-4 text-center text-sm text-purple-700">
-              Admin authentication will be connected to Firebase later.
+              Admin access is restricted to authorized accounts.
             </div>
 
             {/* Switch Role */}

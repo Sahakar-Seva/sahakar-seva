@@ -2,21 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/Firebase/config";
+import { getCustomerBookings } from "@/Firebase/firestore";
 
-type StoredBooking = {
-  id: string;
-  customer: string;
-  service: string;
-  date: string;
-  time: string;
-  location: string;
-  amount: number;
-  status: "New" | "Upcoming" | "Completed" | "Cancelled";
-  phone: string;
-  worker: string;
-  workerId: string;
-  serviceId: string;
-};
+type BookingStatus =
+  | "Pending"
+  | "Confirmed"
+  | "On the Way"
+  | "In Progress"
+  | "Completed"
+  | "Cancelled";
 
 type Booking = {
   id: string;
@@ -27,7 +23,8 @@ type Booking = {
   date: string;
   time: string;
   price: string;
-  status: "Upcoming" | "Completed" | "Cancelled";
+  status: BookingStatus;
+  address: string;
 };
 
 const demoBookings: Booking[] = [
@@ -41,6 +38,7 @@ const demoBookings: Booking[] = [
     time: "11:00 AM",
     price: "₹499",
     status: "Completed",
+    address: "Delhi",
   },
   {
     id: "SS-2026-00105",
@@ -52,6 +50,7 @@ const demoBookings: Booking[] = [
     time: "2:00 PM",
     price: "₹399",
     status: "Completed",
+    address: "Delhi",
   },
   {
     id: "SS-2026-00096",
@@ -63,6 +62,7 @@ const demoBookings: Booking[] = [
     time: "4:00 PM",
     price: "₹599",
     status: "Cancelled",
+    address: "Delhi",
   },
 ];
 
@@ -70,56 +70,111 @@ export default function MyBookingsPage() {
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState("All");
-  const [bookings, setBookings] = useState<Booking[]>(demoBookings);
+  const [bookings, setBookings] =
+    useState<Booking[]>(demoBookings);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadBookings = () => {
-      try {
-        const storedData = localStorage.getItem(
-          "sahakar-seva-bookings"
-        );
+  const loadBookings = async (customerId: string) => {
+    try {
+      setLoading(true);
 
-        const storedBookings: StoredBooking[] = storedData
-          ? JSON.parse(storedData)
-          : [];
+      const firebaseBookings =
+        await getCustomerBookings(customerId);
 
-        const formattedBookings: Booking[] = storedBookings.map(
-          (booking) => ({
-            id: booking.id,
-            service: booking.service,
+      const formattedBookings: Booking[] =
+        firebaseBookings.map((booking) => {
+          let status: BookingStatus = "Pending";
+
+          switch (booking.status) {
+            case "pending":
+              status = "Pending";
+              break;
+
+            case "confirmed":
+              status = "Confirmed";
+              break;
+
+            case "on_the_way":
+              status = "On the Way";
+              break;
+
+            case "in_progress":
+              status = "In Progress";
+              break;
+
+            case "completed":
+              status = "Completed";
+              break;
+
+            case "cancelled":
+              status = "Cancelled";
+              break;
+          }
+
+          return {
+            id: booking.bookingId,
+            service: booking.serviceName,
             category: "Service",
-            worker: booking.worker,
-            workerInitials: booking.worker
-              ? booking.worker
-                  .split(" ")
-                  .map((name) => name[0])
-                  .join("")
-                  .slice(0, 2)
-                  .toUpperCase()
-              : "SW",
+            worker: `Worker ${booking.workerId}`,
+            workerInitials: "W",
             date: booking.date,
             time: booking.time,
             price: `₹${booking.amount}`,
-            status:
-              booking.status === "New"
-                ? "Upcoming"
-                : booking.status,
-          })
-        );
+            status,
+            address: booking.address,
+          };
+        });
 
-        setBookings([...formattedBookings, ...demoBookings]);
-      } catch (error) {
-        console.error("Error loading bookings:", error);
-        setBookings(demoBookings);
+      setBookings([
+        ...formattedBookings,
+        ...demoBookings,
+      ]);
+    } catch (error) {
+      console.error(
+        "Unable to load customer bookings:",
+        error
+      );
+
+      setBookings(demoBookings);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (user) => {
+        if (!user) {
+          setBookings(demoBookings);
+          setLoading(false);
+          return;
+        }
+
+        loadBookings(user.uid);
+      }
+    );
+
+    const handleFocus = () => {
+      const user = auth.currentUser;
+
+      if (user) {
+        loadBookings(user.uid);
       }
     };
 
-    loadBookings();
-
-    window.addEventListener("focus", loadBookings);
+    window.addEventListener(
+      "focus",
+      handleFocus
+    );
 
     return () => {
-      window.removeEventListener("focus", loadBookings);
+      unsubscribe();
+
+      window.removeEventListener(
+        "focus",
+        handleFocus
+      );
     };
   }, []);
 
@@ -127,26 +182,44 @@ export default function MyBookingsPage() {
     activeTab === "All"
       ? bookings
       : bookings.filter(
-          (booking) => booking.status === activeTab
+          (booking) =>
+            booking.status === activeTab
         );
 
   const upcomingCount = bookings.filter(
-    (booking) => booking.status === "Upcoming"
+    (booking) =>
+      booking.status === "Pending" ||
+      booking.status === "Confirmed" ||
+      booking.status === "On the Way" ||
+      booking.status === "In Progress"
   ).length;
 
   const completedCount = bookings.filter(
-    (booking) => booking.status === "Completed"
+    (booking) =>
+      booking.status === "Completed"
   ).length;
 
   const cancelledCount = bookings.filter(
-    (booking) => booking.status === "Cancelled"
+    (booking) =>
+      booking.status === "Cancelled"
   ).length;
 
   const getStatusStyle = (
-    status: Booking["status"]
+    status: BookingStatus
   ) => {
-    if (status === "Upcoming") {
+    if (status === "Pending") {
+      return "bg-yellow-50 text-yellow-700 border-yellow-200";
+    }
+
+    if (status === "Confirmed") {
       return "bg-blue-50 text-blue-700 border-blue-200";
+    }
+
+    if (
+      status === "On the Way" ||
+      status === "In Progress"
+    ) {
+      return "bg-purple-50 text-purple-700 border-purple-200";
     }
 
     if (status === "Completed") {
@@ -155,6 +228,16 @@ export default function MyBookingsPage() {
 
     return "bg-red-50 text-red-700 border-red-200";
   };
+
+  const tabs = [
+    "All",
+    "Pending",
+    "Confirmed",
+    "On the Way",
+    "In Progress",
+    "Completed",
+    "Cancelled",
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -249,163 +332,218 @@ export default function MyBookingsPage() {
         </div>
 
         <div className="mt-8 flex gap-2 overflow-x-auto border-b">
-          {[
-            "All",
-            "Upcoming",
-            "Completed",
-            "Cancelled",
-          ].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition ${
-                activeTab === tab
-                  ? "border-green-600 text-green-700"
-                  : "border-transparent text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+          {tabs.map((tab) => {
+            const count =
+              tab === "All"
+                ? bookings.length
+                : bookings.filter(
+                    (booking) =>
+                      booking.status === tab
+                  ).length;
 
-        <div className="mt-6 space-y-4">
-          {filteredBookings.map((booking) => (
-            <div
-              key={booking.id}
-              className="rounded-2xl border bg-white p-5 shadow-sm"
-            >
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-100 font-semibold text-green-700">
-                    {booking.workerInitials}
-                  </div>
+            return (
+              <button
+                key={tab}
+                onClick={() =>
+                  setActiveTab(tab)
+                }
+                className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition ${
+                  activeTab === tab
+                    ? "border-green-600 text-green-700"
+                    : "border-transparent text-gray-500 hover:text-gray-900"
+                }`}
+              >
+                {tab}
 
-                  <div>
-                    <h2 className="font-semibold text-gray-900">
-                      {booking.service}
-                    </h2>
-
-                    <p className="mt-1 text-sm text-gray-500">
-                      {booking.category}
-                    </p>
-
-                    <p className="mt-2 text-sm text-gray-700">
-                      Worker:{" "}
-                      <span className="font-medium">
-                        {booking.worker}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-
-                <span
-                  className={`w-fit rounded-full border px-3 py-1 text-xs font-medium ${getStatusStyle(
-                    booking.status
-                  )}`}
-                >
-                  {booking.status}
+                <span className="ml-1 text-xs text-gray-400">
+                  ({count})
                 </span>
-              </div>
-
-              <div className="mt-5 grid grid-cols-1 gap-4 border-t pt-5 sm:grid-cols-3">
-                <div>
-                  <p className="text-xs text-gray-500">
-                    Date & Time
-                  </p>
-
-                  <p className="mt-1 text-sm font-medium text-gray-900">
-                    {booking.date}
-                  </p>
-
-                  <p className="text-sm text-gray-600">
-                    {booking.time}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-gray-500">
-                    Booking ID
-                  </p>
-
-                  <p className="mt-1 text-sm font-medium text-gray-900">
-                    {booking.id}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-gray-500">
-                    Amount
-                  </p>
-
-                  <p className="mt-1 text-lg font-bold text-gray-900">
-                    {booking.price}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-5 flex flex-col gap-3 border-t pt-5 sm:flex-row sm:justify-end">
-                <button
-                  onClick={() =>
-                    router.push(
-                      `/customer/bookings/${booking.id}`
-                    )
-                  }
-                  className="rounded-lg bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700"
-                >
-                  View Details
-                </button>
-
-                {booking.status === "Upcoming" && (
-                  <button
-                    onClick={() =>
-                      router.push("/customer/services")
-                    }
-                    className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                  >
-                    Book Another Service
-                  </button>
-                )}
-
-                {booking.status === "Completed" && (
-                  <button
-                    onClick={() =>
-                      router.push(
-                        `/customer/review/${booking.id}`
-                      )
-                    }
-                    className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                  >
-                    Rate & Review
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
+              </button>
+            );
+          })}
         </div>
 
-        {filteredBookings.length === 0 && (
+        {loading && (
           <div className="mt-6 rounded-2xl border bg-white px-6 py-14 text-center">
-            <div className="text-4xl">📋</div>
+            <div className="text-3xl">
+              ⏳
+            </div>
 
             <h2 className="mt-4 text-lg font-semibold text-gray-900">
-              No bookings found
+              Loading bookings...
             </h2>
 
             <p className="mt-2 text-sm text-gray-500">
-              You don't have any bookings in this category.
+              Fetching your bookings from Firebase.
             </p>
-
-            <button
-              onClick={() =>
-                router.push("/customer/services")
-              }
-              className="mt-6 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700"
-            >
-              Explore Services
-            </button>
           </div>
         )}
+
+        {!loading && (
+          <div className="mt-6 space-y-4">
+            {filteredBookings.map(
+              (booking) => (
+                <div
+                  key={booking.id}
+                  className="rounded-2xl border bg-white p-5 shadow-sm"
+                >
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-100 font-semibold text-green-700">
+                        {booking.workerInitials}
+                      </div>
+
+                      <div>
+                        <h2 className="font-semibold text-gray-900">
+                          {booking.service}
+                        </h2>
+
+                        <p className="mt-1 text-sm text-gray-500">
+                          {booking.category}
+                        </p>
+
+                        <p className="mt-2 text-sm text-gray-700">
+                          Worker:{" "}
+                          <span className="font-medium">
+                            {booking.worker}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`w-fit rounded-full border px-3 py-1 text-xs font-medium ${getStatusStyle(
+                        booking.status
+                      )}`}
+                    >
+                      {booking.status}
+                    </span>
+                  </div>
+
+                  <div className="mt-5 grid grid-cols-1 gap-4 border-t pt-5 sm:grid-cols-3">
+                    <div>
+                      <p className="text-xs text-gray-500">
+                        Date & Time
+                      </p>
+
+                      <p className="mt-1 text-sm font-medium text-gray-900">
+                        {booking.date}
+                      </p>
+
+                      <p className="text-sm text-gray-600">
+                        {booking.time}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-gray-500">
+                        Booking ID
+                      </p>
+
+                      <p className="mt-1 break-all text-sm font-medium text-gray-900">
+                        {booking.id}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-gray-500">
+                        Amount
+                      </p>
+
+                      <p className="mt-1 text-lg font-bold text-gray-900">
+                        {booking.price}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 border-t pt-5">
+                    <p className="text-xs text-gray-500">
+                      Service Location
+                    </p>
+
+                    <p className="mt-1 text-sm text-gray-700">
+                      {booking.address}
+                    </p>
+                  </div>
+
+                  <div className="mt-5 flex flex-col gap-3 border-t pt-5 sm:flex-row sm:justify-end">
+                    <button
+                      onClick={() =>
+                        router.push(
+                          `/customer/bookings/${booking.id}`
+                        )
+                      }
+                      className="rounded-lg bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700"
+                    >
+                      View Details
+                    </button>
+
+                    {(booking.status ===
+                      "Confirmed" ||
+                      booking.status ===
+                        "On the Way" ||
+                      booking.status ===
+                        "In Progress") && (
+                      <button
+                        onClick={() =>
+                          router.push(
+                            "/customer/services"
+                          )
+                        }
+                        className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                      >
+                        Book Another Service
+                      </button>
+                    )}
+
+                    {booking.status ===
+                      "Completed" && (
+                      <button
+                        onClick={() =>
+                          router.push(
+                            `/customer/review/${booking.id}`
+                          )
+                        }
+                        className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                      >
+                        Rate & Review
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+        )}
+
+        {!loading &&
+          filteredBookings.length === 0 && (
+            <div className="mt-6 rounded-2xl border bg-white px-6 py-14 text-center">
+              <div className="text-4xl">
+                📋
+              </div>
+
+              <h2 className="mt-4 text-lg font-semibold text-gray-900">
+                No bookings found
+              </h2>
+
+              <p className="mt-2 text-sm text-gray-500">
+                You don't have any bookings in this
+                category.
+              </p>
+
+              <button
+                onClick={() =>
+                  router.push(
+                    "/customer/services"
+                  )
+                }
+                className="mt-6 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700"
+              >
+                Explore Services
+              </button>
+            </div>
+          )}
 
         <div className="mt-10 rounded-2xl border border-green-100 bg-green-50 p-6 text-center">
           <h3 className="font-semibold text-gray-900">
@@ -413,8 +551,8 @@ export default function MyBookingsPage() {
           </h3>
 
           <p className="mt-2 text-sm text-gray-600">
-            All service providers on Sahakar Seva are verified
-            cooperative workers.
+            All service providers on Sahakar Seva
+            are verified cooperative workers.
           </p>
         </div>
       </main>

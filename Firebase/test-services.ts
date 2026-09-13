@@ -17,7 +17,8 @@ import {
 
 async function runServicesTest() {
   const timestamp = Date.now();
-  const workerEmail = `plumber_${timestamp}@test.com`;
+ const workerEmail = `plumber_${timestamp}@test.com`;
+console.log("WORKER EMAIL:", workerEmail);
   const password = "WorkerSecurePass123!";
 
   console.log("==========================================");

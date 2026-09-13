@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const dates = [
-  { day: "Today", date: "11", month: "Sep" },
-  { day: "Sat", date: "12", month: "Sep" },
-  { day: "Sun", date: "13", month: "Sep" },
   { day: "Mon", date: "14", month: "Sep" },
   { day: "Tue", date: "15", month: "Sep" },
   { day: "Wed", date: "16", month: "Sep" },
   { day: "Thu", date: "17", month: "Sep" },
+  { day: "Fri", date: "18", month: "Sep" },
+  { day: "Sat", date: "19", month: "Sep" },
+  { day: "Sun", date: "20", month: "Sep" },
 ];
 
 const timeSlots = [
@@ -77,14 +77,30 @@ export default function BookingSchedulePage() {
     (date) => date.date === selectedDate
   );
 
-  const handleContinue = () => {
-    router.push(
-      `/customer/book/review?worker=${workerId}&service=${serviceId}&date=${selectedDate}&time=${encodeURIComponent(
-        selectedTime
-      )}`
-    );
-  };
+const handleContinue = () => {
+  const params = new URLSearchParams(window.location.search);
 
+  const address =
+    params.get("address") ||
+    "Flat 204, Green Residency, Sector 12, Dwarka, New Delhi";
+
+  const landmark = params.get("landmark") || "";
+  const instructions = params.get("instructions") || "";
+
+  router.push(
+    `/customer/book/review?worker=${workerId}&service=${serviceId}&date=${encodeURIComponent(
+      selectedDate
+    )}&time=${encodeURIComponent(
+      selectedTime
+    )}&address=${encodeURIComponent(
+      address
+    )}&landmark=${encodeURIComponent(
+      landmark
+    )}&instructions=${encodeURIComponent(
+      instructions
+    )}`
+  );
+};
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <header className="border-b border-gray-100 bg-white">

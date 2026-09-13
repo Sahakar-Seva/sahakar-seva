@@ -21,6 +21,7 @@ export default function Home() {
       {/* Main */}
       <section className="mx-auto flex min-h-[calc(100vh-81px)] max-w-7xl items-center justify-center px-6 py-12">
         <div className="w-full max-w-5xl text-center">
+
           {/* Hero */}
           <div className="mb-12">
             <div className="mb-4 inline-flex rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-700">
@@ -29,7 +30,9 @@ export default function Home() {
 
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
               Welcome to{" "}
-              <span className="text-green-700">Sahakar Seva</span>
+              <span className="text-green-700">
+                Sahakar Seva
+              </span>
             </h1>
 
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-gray-600">
@@ -49,6 +52,7 @@ export default function Home() {
             </p>
 
             <div className="grid gap-6 md:grid-cols-3">
+
               {/* Customer */}
               <Link
                 href="/customer/login"
@@ -117,6 +121,7 @@ export default function Home() {
                   Continue as Admin →
                 </div>
               </Link>
+
             </div>
           </div>
 
@@ -124,6 +129,7 @@ export default function Home() {
           <p className="mt-12 text-sm text-gray-500">
             Sahakar Seva — Cooperative-owned services for the community.
           </p>
+
         </div>
       </section>
     </main>

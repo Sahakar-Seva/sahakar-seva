@@ -2,21 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-
-type Booking = {
-  id: string;
-  customer: string;
-  service: string;
-  date: string;
-  time: string;
-  location: string;
-  amount: number;
-  status: "New" | "Upcoming" | "Completed" | "Cancelled";
-  phone: string;
-  worker: string;
-  workerId: string;
-  serviceId: string;
-};
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/Firebase/config";
+import { createBooking } from "@/Firebase/firestore";
 
 const services = [
   { id: "electrician", name: "Electrician", price: 299 },
@@ -53,11 +41,22 @@ const workers = [
 export default function BookingSuccessPage() {
   const [workerId, setWorkerId] = useState("1");
   const [serviceId, setServiceId] = useState("electrician");
-  const [date, setDate] = useState("11 Sep 2026");
+
+  const [date, setDate] = useState("14");
   const [time, setTime] = useState("10:00 AM");
 
-  const [copied, setCopied] = useState(false);
+  const [address, setAddress] = useState(
+    "Flat 204, Green Residency, Sector 12, Dwarka, New Delhi"
+  );
+
+  const [landmark, setLandmark] = useState("");
+  const [instructions, setInstructions] = useState("");
+
   const [bookingId, setBookingId] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  const [isCreatingBooking, setIsCreatingBooking] = useState(true);
+  const [bookingError, setBookingError] = useState("");
 
   const service =
     services.find((item) => item.id === serviceId) || services[0];
@@ -68,56 +67,94 @@ export default function BookingSuccessPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
-    const currentWorkerId = params.get("worker") || "1";
-    const currentServiceId =
-      params.get("service") || "electrician";
-    const currentDate = params.get("date") || "11 Sep 2026";
-    const currentTime = params.get("time") || "10:00 AM";
+    setWorkerId(params.get("worker") || "1");
+    setServiceId(params.get("service") || "electrician");
 
-    setWorkerId(currentWorkerId);
-    setServiceId(currentServiceId);
-    setDate(currentDate);
-    setTime(currentTime);
+    setDate(params.get("date") || "14");
+    setTime(params.get("time") || "10:00 AM");
+
+    setAddress(
+      params.get("address") ||
+        "Flat 204, Green Residency, Sector 12, Dwarka, New Delhi"
+    );
+
+    setLandmark(params.get("landmark") || "");
+    setInstructions(params.get("instructions") || "");
   }, []);
 
   useEffect(() => {
-    const newBookingId = `SS-${new Date().getFullYear()}-${Date.now()
-      .toString()
-      .slice(-6)}`;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setBookingError(
+          "You must be logged in to create a booking."
+        );
+        setIsCreatingBooking(false);
+        return;
+      }
 
-    setBookingId(newBookingId);
+      try {
+        setIsCreatingBooking(true);
+        setBookingError("");
 
-    let existingBookings: Booking[] = [];
+        const params = new URLSearchParams(window.location.search);
 
-    try {
-      existingBookings = JSON.parse(
-        localStorage.getItem("sahakar-seva-bookings") || "[]"
-      );
-    } catch {
-      existingBookings = [];
-    }
+        const currentWorkerId = params.get("worker") || "1";
+        const currentServiceId =
+          params.get("service") || "electrician";
 
-    const newBooking: Booking = {
-      id: newBookingId,
-      customer: "Amit Verma",
-      service: service.name,
-      date,
-      time,
-      location:
-        "Flat 204, Green Residency, Sector 12, Dwarka, New Delhi",
-      amount: service.price,
-      status: "New",
-      phone: "+91 98XXXXXX21",
-      worker: worker.name,
-      workerId,
-      serviceId,
-    };
+        const currentDate = params.get("date") || "14";
+        const currentTime = params.get("time") || "10:00 AM";
 
-    localStorage.setItem(
-      "sahakar-seva-bookings",
-      JSON.stringify([...existingBookings, newBooking])
-    );
-  }, [date, time, workerId, worker, service, serviceId]);
+        const currentAddress =
+          params.get("address") ||
+          "Flat 204, Green Residency, Sector 12, Dwarka, New Delhi";
+
+        const currentLandmark = params.get("landmark") || "";
+        const currentInstructions =
+          params.get("instructions") || "";
+
+        const selectedService =
+          services.find(
+            (item) => item.id === currentServiceId
+          ) || services[0];
+
+        const notes = [
+          currentLandmark
+            ? `Landmark: ${currentLandmark}`
+            : "",
+          currentInstructions
+            ? `Instructions: ${currentInstructions}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join("\n");
+
+        const newBookingId = await createBooking({
+          customerId: user.uid,
+          workerId: currentWorkerId,
+          serviceId: currentServiceId,
+          serviceName: selectedService.name,
+          date: `${currentDate} Sep 2026`,
+          time: currentTime,
+          address: currentAddress,
+          ...(notes ? { notes } : {}),
+          amount: selectedService.price,
+        });
+
+        setBookingId(newBookingId);
+      } catch (error) {
+        console.error("Failed to create booking:", error);
+
+        setBookingError(
+          "Unable to create the booking right now. Please try again."
+        );
+      } finally {
+        setIsCreatingBooking(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const copyBookingId = async () => {
     if (!bookingId) return;
@@ -134,9 +171,10 @@ export default function BookingSuccessPage() {
     }
   };
 
+  const displayDate = `${date} Sep 2026`;
+
   return (
     <main className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link
@@ -161,32 +199,31 @@ export default function BookingSuccessPage() {
         </div>
       </header>
 
-      {/* Success section */}
       <div className="mx-auto max-w-3xl px-6 py-12">
         <div className="rounded-3xl border bg-white p-8 text-center shadow-sm">
-          {/* Success icon */}
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
             <span className="text-4xl text-green-700">✓</span>
           </div>
 
           <h1 className="mt-6 text-3xl font-bold text-gray-900">
-            Booking Confirmed!
+            Booking Request Placed!
           </h1>
 
           <p className="mx-auto mt-3 max-w-xl text-gray-600">
-            Your service request has been successfully placed.
-            {worker.name} has been notified about your booking.
+            Your service request has been successfully sent to{" "}
+            {worker.name}.
           </p>
 
-          {/* Booking ID */}
           <div className="mx-auto mt-8 max-w-md rounded-2xl bg-gray-50 p-5">
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
               Booking ID
             </p>
 
             <div className="mt-2 flex items-center justify-center gap-3">
-              <p className="text-xl font-bold text-gray-900">
-                {bookingId || "Generating..."}
+              <p className="break-all text-xl font-bold text-gray-900">
+                {isCreatingBooking
+                  ? "Creating..."
+                  : bookingId || "Unavailable"}
               </p>
 
               <button
@@ -199,14 +236,25 @@ export default function BookingSuccessPage() {
             </div>
           </div>
 
-          {/* Booking details */}
+          {bookingError && (
+            <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-left">
+              <p className="font-medium text-red-800">
+                Booking Error
+              </p>
+
+              <p className="mt-1 text-sm text-red-700">
+                {bookingError}
+              </p>
+            </div>
+          )}
+
           <div className="mt-8 rounded-2xl border text-left">
             <div className="border-b p-5">
               <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
                 Service
               </p>
 
-              <div className="mt-2 flex items-center justify-between">
+              <div className="mt-2 flex items-center justify-between gap-4">
                 <div>
                   <h2 className="font-semibold text-gray-900">
                     {service.name}
@@ -217,8 +265,8 @@ export default function BookingSuccessPage() {
                   </p>
                 </div>
 
-                <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
-                  Confirmed
+                <span className="rounded-full bg-yellow-50 px-3 py-1 text-xs font-medium text-yellow-700">
+                  Pending
                 </span>
               </div>
             </div>
@@ -230,7 +278,7 @@ export default function BookingSuccessPage() {
                 </p>
 
                 <p className="mt-1 font-medium text-gray-800">
-                  {date}
+                  {displayDate}
                 </p>
 
                 <p className="mt-1 text-sm text-gray-500">
@@ -254,32 +302,48 @@ export default function BookingSuccessPage() {
                 </p>
 
                 <p className="mt-1 font-medium text-gray-800">
-                  Flat 204, Green Residency, Sector 12, Dwarka, New Delhi
+                  {address}
                 </p>
+
+                {landmark && (
+                  <p className="mt-1 text-sm text-gray-500">
+                    Landmark: {landmark}
+                  </p>
+                )}
               </div>
+
+              {instructions && (
+                <div className="md:col-span-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                    Instructions
+                  </p>
+
+                  <p className="mt-1 text-sm leading-6 text-gray-600">
+                    {instructions}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Worker notification */}
           <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50 p-5 text-left">
             <div className="flex gap-4">
               <div className="text-2xl">🔔</div>
 
               <div>
                 <h3 className="font-semibold text-blue-900">
-                  Worker notification sent
+                  Worker request sent
                 </h3>
 
                 <p className="mt-1 text-sm leading-6 text-blue-800">
                   {worker.name} has received your service request.
-                  The booking will appear in the worker&apos;s
-                  booking dashboard.
+                  The booking is currently pending and will be
+                  updated when the worker responds.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Actions */}
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
               href="/customer/bookings"
@@ -297,14 +361,14 @@ export default function BookingSuccessPage() {
           </div>
         </div>
 
-        {/* Trust section */}
         <div className="mt-6 rounded-2xl border bg-white p-5 text-center">
           <p className="text-sm font-medium text-gray-800">
             🛡️ Trusted cooperative service
           </p>
 
           <p className="mt-1 text-xs text-gray-500">
-            Your booking is handled by a verified Sahakar Seva worker.
+            Your booking is handled by a verified Sahakar Seva
+            worker.
           </p>
         </div>
       </div>
