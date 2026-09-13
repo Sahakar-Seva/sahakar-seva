@@ -110,6 +110,22 @@ export async function getActiveServices(): Promise<ServiceItem[]> {
 }
 
 /**
+ * Fetch a single service by its service ID
+ */
+export async function getService(
+  serviceId: string
+): Promise<ServiceItem | null> {
+  const serviceRef = doc(db, "services", serviceId);
+  const serviceSnap = await getDoc(serviceRef);
+
+  if (!serviceSnap.exists()) {
+    return null;
+  }
+
+  return serviceSnap.data() as ServiceItem;
+}
+
+/**
  * Fetch services by specific category
  */
 export async function getServicesByCategory(category: string): Promise<ServiceItem[]> {

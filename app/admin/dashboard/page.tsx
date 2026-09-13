@@ -203,7 +203,7 @@ export default function AdminDashboard() {
               Workers
             </Link>
 
-            <Link href="/admin/customer" className="hover:text-green-700">
+            <Link href="/admin/customers" className="hover:text-green-700">
               Customers
             </Link>
 
@@ -738,7 +738,7 @@ export default function AdminDashboard() {
             </Link>
 
             <Link
-              href="/admin/customer"
+              href="/admin/customers"
               className="rounded-xl border border-gray-200 p-5 text-left hover:border-green-200 hover:bg-green-50"
             >
               <UsersIcon />

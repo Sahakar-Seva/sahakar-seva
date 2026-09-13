@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 function CheckIcon() {
   return (
     <svg
@@ -89,7 +91,7 @@ export default function WorkerDashboard() {
       {/* Header */}
       <header className="border-b border-gray-100 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
+          <Link href="/worker/dashboard" className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-700 text-lg font-bold text-white">
               S
             </div>
@@ -100,48 +102,63 @@ export default function WorkerDashboard() {
                 Trusted services, powered by cooperation.
               </p>
             </div>
-          </div>
+          </Link>
 
           <nav className="hidden items-center gap-7 text-sm font-medium text-gray-600 lg:flex">
-            <a
+            <Link
               href="/worker/dashboard"
               className="font-semibold text-green-700"
             >
               Dashboard
-            </a>
+            </Link>
 
-            <a href="#" className="hover:text-green-700">
+            <Link
+              href="/worker/bookings"
+              className="hover:text-green-700"
+            >
               Bookings
-            </a>
+            </Link>
 
-            <a href="#" className="hover:text-green-700">
+            <Link
+              href="/worker/services"
+              className="hover:text-green-700"
+            >
               Services
-            </a>
+            </Link>
 
-            <a href="#" className="hover:text-green-700">
+            <Link
+              href="/worker/earnings"
+              className="hover:text-green-700"
+            >
               Earnings
-            </a>
+            </Link>
           </nav>
 
           <div className="flex items-center gap-4">
-            <button className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100">
+            <button
+              type="button"
+              className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
+            >
               <BellIcon />
 
               <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-green-600" />
             </button>
 
-            <div className="hidden text-right sm:block">
+            <Link href="/worker/profile" className="hidden text-right sm:block">
               <p className="text-sm font-semibold">Rahul Sharma</p>
 
               <div className="flex items-center justify-end gap-1 text-xs text-green-700">
                 <CheckIcon />
                 Verified Worker
               </div>
-            </div>
+            </Link>
 
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-sm font-bold text-green-800">
+            <Link
+              href="/worker/profile"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-sm font-bold text-green-800"
+            >
               RS
-            </div>
+            </Link>
           </div>
         </div>
       </header>
@@ -152,7 +169,9 @@ export default function WorkerDashboard() {
         <div className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-2xl font-bold">Welcome back, Rahul!</h2>
+              <h2 className="text-2xl font-bold">
+                Welcome back, Rahul!
+              </h2>
 
               <span className="flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
                 <CheckIcon />
@@ -172,6 +191,7 @@ export default function WorkerDashboard() {
               <p className="text-sm font-semibold text-green-900">
                 Available
               </p>
+
               <p className="text-xs text-green-700">
                 Accepting new bookings
               </p>
@@ -266,16 +286,22 @@ export default function WorkerDashboard() {
           <section className="rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div className="flex items-center justify-between border-b border-gray-100 p-6">
               <div>
-                <h3 className="text-lg font-bold">Today&apos;s Bookings</h3>
+                <h3 className="text-lg font-bold">
+                  Today&apos;s Bookings
+                </h3>
+
                 <p className="mt-1 text-sm text-gray-500">
                   Your scheduled services for today
                 </p>
               </div>
 
-              <button className="flex items-center gap-1 text-sm font-semibold text-green-700 hover:text-green-800">
+              <Link
+                href="/worker/bookings"
+                className="flex items-center gap-1 text-sm font-semibold text-green-700 hover:text-green-800"
+              >
                 View All
                 <ArrowIcon />
-              </button>
+              </Link>
             </div>
 
             <div className="divide-y divide-gray-100">
@@ -309,9 +335,12 @@ export default function WorkerDashboard() {
                   <div className="flex items-center justify-between gap-5 md:justify-end">
                     <p className="font-semibold">₹499</p>
 
-                    <button className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium hover:bg-gray-50">
+                    <Link
+                      href="/worker/bookings"
+                      className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium hover:bg-gray-50"
+                    >
                       View Details
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -346,9 +375,12 @@ export default function WorkerDashboard() {
                   <div className="flex items-center justify-between gap-5 md:justify-end">
                     <p className="font-semibold">₹699</p>
 
-                    <button className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium hover:bg-gray-50">
+                    <Link
+                      href="/worker/bookings"
+                      className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium hover:bg-gray-50"
+                    >
                       View Details
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -383,11 +415,17 @@ export default function WorkerDashboard() {
                   <div className="flex items-center justify-between gap-3 md:justify-end">
                     <p className="mr-2 font-semibold">₹399</p>
 
-                    <button className="rounded-lg border border-red-100 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50">
+                    <button
+                      type="button"
+                      className="rounded-lg border border-red-100 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                    >
                       Reject
                     </button>
 
-                    <button className="rounded-lg bg-green-700 px-3 py-2 text-sm font-medium text-white hover:bg-green-800">
+                    <button
+                      type="button"
+                      className="rounded-lg bg-green-700 px-3 py-2 text-sm font-medium text-white hover:bg-green-800"
+                    >
                       Accept
                     </button>
                   </div>
@@ -402,25 +440,37 @@ export default function WorkerDashboard() {
               <h3 className="text-lg font-bold">Quick Actions</h3>
 
               <div className="mt-5 space-y-3">
-                <button className="flex w-full items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium hover:bg-gray-50">
+                <Link
+                  href="/worker/services"
+                  className="flex w-full items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium hover:bg-gray-50"
+                >
                   Manage Services
                   <ArrowIcon />
-                </button>
+                </Link>
 
-                <button className="flex w-full items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium hover:bg-gray-50">
+                <Link
+                  href="/worker/bookings"
+                  className="flex w-full items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium hover:bg-gray-50"
+                >
                   View All Bookings
                   <ArrowIcon />
-                </button>
+                </Link>
 
-                <button className="flex w-full items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium hover:bg-gray-50">
+                <Link
+                  href="/worker/profile"
+                  className="flex w-full items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium hover:bg-gray-50"
+                >
                   Update Availability
                   <ArrowIcon />
-                </button>
+                </Link>
 
-                <button className="flex w-full items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium hover:bg-gray-50">
+                <Link
+                  href="/worker/earnings"
+                  className="flex w-full items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium hover:bg-gray-50"
+                >
                   View Earnings
                   <ArrowIcon />
-                </button>
+                </Link>
               </div>
             </section>
 
@@ -448,50 +498,70 @@ export default function WorkerDashboard() {
           <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold">Upcoming Bookings</h3>
+                <h3 className="text-lg font-bold">
+                  Upcoming Bookings
+                </h3>
+
                 <p className="mt-1 text-sm text-gray-500">
                   Your next scheduled services
                 </p>
               </div>
 
-              <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+              <Link
+                href="/worker/bookings"
+                className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-200"
+              >
                 5 services
-              </span>
+              </Link>
             </div>
 
             <div className="mt-5 space-y-4">
-              <div className="flex items-center justify-between rounded-xl bg-gray-50 p-4">
+              <Link
+                href="/worker/bookings"
+                className="flex items-center justify-between rounded-xl bg-gray-50 p-4 hover:bg-gray-100"
+              >
                 <div>
                   <p className="font-semibold">Electrical Repair</p>
+
                   <p className="mt-1 text-xs text-gray-500">
                     Amit Verma · 18 Sep · 10 AM
                   </p>
                 </div>
 
                 <p className="font-semibold">₹499</p>
-              </div>
+              </Link>
 
-              <div className="flex items-center justify-between rounded-xl bg-gray-50 p-4">
+              <Link
+                href="/worker/bookings"
+                className="flex items-center justify-between rounded-xl bg-gray-50 p-4 hover:bg-gray-100"
+              >
                 <div>
                   <p className="font-semibold">Fan Installation</p>
+
                   <p className="mt-1 text-xs text-gray-500">
                     Priya Mehta · 18 Sep · 2 PM
                   </p>
                 </div>
 
                 <p className="font-semibold">₹699</p>
-              </div>
+              </Link>
 
-              <div className="flex items-center justify-between rounded-xl bg-gray-50 p-4">
+              <Link
+                href="/worker/bookings"
+                className="flex items-center justify-between rounded-xl bg-gray-50 p-4 hover:bg-gray-100"
+              >
                 <div>
-                  <p className="font-semibold">Switch & Socket Repair</p>
+                  <p className="font-semibold">
+                    Switch & Socket Repair
+                  </p>
+
                   <p className="mt-1 text-xs text-gray-500">
                     Rohit Kumar · 19 Sep · 5 PM
                   </p>
                 </div>
 
                 <p className="font-semibold">₹399</p>
-              </div>
+              </Link>
             </div>
           </section>
 
@@ -499,6 +569,7 @@ export default function WorkerDashboard() {
           <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div>
               <h3 className="text-lg font-bold">Performance</h3>
+
               <p className="mt-1 text-sm text-gray-500">
                 Your service performance at a glance
               </p>
@@ -507,6 +578,7 @@ export default function WorkerDashboard() {
             <div className="mt-6 grid grid-cols-2 gap-4">
               <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
                 <p className="text-xs text-gray-500">Completed</p>
+
                 <p className="mt-2 text-2xl font-bold">86</p>
               </div>
 
@@ -514,11 +586,15 @@ export default function WorkerDashboard() {
                 <p className="text-xs text-gray-500">
                   Customer Satisfaction
                 </p>
+
                 <p className="mt-2 text-2xl font-bold">96%</p>
               </div>
 
               <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-                <p className="text-xs text-gray-500">Response Rate</p>
+                <p className="text-xs text-gray-500">
+                  Response Rate
+                </p>
+
                 <p className="mt-2 text-2xl font-bold">94%</p>
               </div>
 

@@ -1,156 +1,106 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { notFound } from "next/navigation";
-
-const services = [
-  {
-    name: "Electrician",
-    category: "Repairs",
-    icon: "⚡",
-    rating: 4.8,
-    reviews: 184,
-    price: 299,
-    workers: 28,
-    description: "Electrical repairs, wiring and installations",
-  },
-  {
-    name: "Plumber",
-    category: "Repairs",
-    icon: "🔧",
-    rating: 4.7,
-    reviews: 156,
-    price: 349,
-    workers: 31,
-    description: "Plumbing repairs, fittings and installations",
-  },
-  {
-    name: "Home Cleaning",
-    category: "Cleaning",
-    icon: "✨",
-    rating: 4.8,
-    reviews: 210,
-    price: 499,
-    workers: 42,
-    description: "Professional home and deep cleaning services",
-  },
-  {
-    name: "Carpenter",
-    category: "Home Improvement",
-    icon: "🪚",
-    rating: 4.6,
-    reviews: 128,
-    price: 399,
-    workers: 19,
-    description: "Furniture repair, installation and woodwork",
-  },
-  {
-    name: "Appliance Repair",
-    category: "Appliance Services",
-    icon: "🔌",
-    rating: 4.5,
-    reviews: 112,
-    price: 399,
-    workers: 19,
-    description: "Repair and maintenance of household appliances",
-  },
-  {
-    name: "Painting",
-    category: "Home Improvement",
-    icon: "🎨",
-    rating: 4.4,
-    reviews: 96,
-    price: 599,
-    workers: 17,
-    description: "Interior and exterior painting services",
-  },
-  {
-    name: "Gardening",
-    category: "Outdoor Services",
-    icon: "🌱",
-    rating: 4.8,
-    reviews: 142,
-    price: 299,
-    workers: 24,
-    description: "Garden maintenance and plant care",
-  },
-  {
-    name: "AC Service",
-    category: "Appliance Services",
-    icon: "❄️",
-    rating: 4.6,
-    reviews: 134,
-    price: 499,
-    workers: 15,
-    description: "AC servicing, cleaning and maintenance",
-  },
-  {
-    name: "Pest Control",
-    category: "Home Services",
-    icon: "🛡️",
-    rating: 4.2,
-    reviews: 88,
-    price: 599,
-    workers: 8,
-    description: "Safe pest control for your home",
-  },
-  {
-    name: "Fan Installation",
-    category: "Home Services",
-    icon: "🌀",
-    rating: 4.7,
-    reviews: 105,
-    price: 299,
-    workers: 14,
-    description: "Ceiling and wall fan installation services",
-  },
-  {
-    name: "Washing Machine Repair",
-    category: "Appliance Services",
-    icon: "🧺",
-    rating: 4.5,
-    reviews: 91,
-    price: 399,
-    workers: 11,
-    description: "Washing machine repair and maintenance",
-  },
-  {
-    name: "Furniture Assembly",
-    category: "Home Improvement",
-    icon: "🪑",
-    rating: 4.6,
-    reviews: 79,
-    price: 299,
-    workers: 13,
-    description: "Furniture assembly and installation",
-  },
-];
+import { getService } from "../../../../Firebase/firestore";
+import type { ServiceItem } from "../../../../Firebase/types";
 
 export default function ServiceDetailsPage() {
   const params = useParams();
   const serviceId = String(params.id);
 
-const service = services.find(
-  (item) =>
-    item.name.toLowerCase().replace(/\s+/g, "-") === serviceId
-);
+  const [service, setService] = useState<ServiceItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-if (!service) {
-  notFound();
-}
+  useEffect(() => {
+    const loadService = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-const duration = "1–2 hours";
+        const data = await getService(serviceId);
 
-const included = [
-  "Service inspection and assessment",
-  "Basic repair and troubleshooting",
-  "Common service and installation work",
-  "Work by verified cooperative workers",
-];
+        if (!data) {
+          setError("Service not found.");
+          return;
+        }
 
-const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
+        setService(data);
+      } catch (err) {
+        console.error("Failed to load service:", err);
+        setError("Unable to load service details.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    loadService();
+  }, [serviceId]);
+
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-green-700" />
+
+          <p className="mt-4 text-sm text-gray-500">
+            Loading service details...
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error || !service) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-50 px-6">
+        <div className="text-center">
+          <div className="text-4xl">⚠️</div>
+
+          <h1 className="mt-4 text-2xl font-bold text-gray-900">
+            Service not found
+          </h1>
+
+          <p className="mt-2 text-sm text-gray-500">
+            {error || "This service could not be found."}
+          </p>
+
+          <Link
+            href="/customer/services"
+            className="mt-6 inline-block rounded-xl bg-green-700 px-5 py-3 text-sm font-semibold text-white hover:bg-green-800"
+          >
+            Back to Services
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  const serviceIcon =
+    service.category === "Repairs"
+      ? "🔧"
+      : service.category === "Cleaning"
+      ? "✨"
+      : service.category === "Home Improvement"
+      ? "🎨"
+      : service.category === "Appliance Services"
+      ? "🔌"
+      : service.category === "Outdoor Services"
+      ? "🌱"
+      : "🏠";
+
+  const duration = "1–2 hours";
+
+  const included = [
+    "Service inspection and assessment",
+    "Basic repair and troubleshooting",
+    "Common service and installation work",
+    "Work by verified cooperative workers",
+  ];
+
+  const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900">
@@ -187,6 +137,7 @@ const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
           <div className="flex items-center gap-3">
             <div className="hidden items-center gap-2 rounded-full bg-gray-100 px-3 py-2 sm:flex">
               <span>📍</span>
+
               <span className="text-sm font-medium text-gray-700">
                 Delhi
               </span>
@@ -210,6 +161,7 @@ const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
           <Link href="/" className="hover:text-green-700">
             Home
           </Link>
+
           <span>›</span>
 
           <Link
@@ -220,6 +172,7 @@ const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
           </Link>
 
           <span>›</span>
+
           <span className="text-gray-800">{service.name}</span>
         </div>
 
@@ -230,7 +183,7 @@ const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
             <div>
               <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
                 <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-green-50 text-4xl">
-                  {service.icon}
+                  {serviceIcon}
                 </div>
 
                 <div>
@@ -249,27 +202,24 @@ const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
                   </h1>
 
                   <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
-                    <span className="flex items-center gap-1">
-                      <span>⭐</span>
-                      <span className="font-semibold">
-                        {service.rating}
-                      </span>
-                      <span className="text-gray-500">
-                        ({service.reviews} reviews)
-                      </span>
+                    <span className="rounded-full bg-green-50 px-3 py-1 font-semibold text-green-700">
+                      ✓ Active Service
                     </span>
 
                     <span className="text-gray-300">•</span>
 
                     <span className="text-gray-600">
-                      {service.workers} verified workers
+                      Verified cooperative service
                     </span>
                   </div>
                 </div>
               </div>
 
+              {/* About */}
               <div className="mt-7">
-                <h2 className="text-xl font-bold">About this service</h2>
+                <h2 className="text-xl font-bold">
+                  About this service
+                </h2>
 
                 <p className="mt-3 max-w-3xl text-sm leading-7 text-gray-600">
                   {service.description}
@@ -279,23 +229,32 @@ const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
               {/* Quick Info */}
               <div className="mt-7 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-xl bg-gray-50 p-4">
-                  <p className="text-xs text-gray-500">Starting price</p>
+                  <p className="text-xs text-gray-500">
+                    Starting price
+                  </p>
+
                   <p className="mt-1 text-xl font-bold">
                     ₹{service.price}
                   </p>
                 </div>
 
                 <div className="rounded-xl bg-gray-50 p-4">
-                  <p className="text-xs text-gray-500">Typical duration</p>
+                  <p className="text-xs text-gray-500">
+                    Typical duration
+                  </p>
+
                   <p className="mt-1 text-xl font-bold">
                     {duration}
                   </p>
                 </div>
 
                 <div className="rounded-xl bg-gray-50 p-4">
-                  <p className="text-xs text-gray-500">Workers available</p>
-                  <p className="mt-1 text-xl font-bold">
-                    {service.workers}
+                  <p className="text-xs text-gray-500">
+                    Service status
+                  </p>
+
+                  <p className="mt-1 text-xl font-bold capitalize">
+                    {service.status}
                   </p>
                 </div>
               </div>
@@ -311,6 +270,7 @@ const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
                 <span className="text-3xl font-bold">
                   ₹{service.price}
                 </span>
+
                 <span className="pb-1 text-sm text-gray-500">
                   onwards
                 </span>
@@ -320,22 +280,33 @@ const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
 
               <div className="space-y-4 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Rating</span>
-                  <span className="font-semibold">
-                    ⭐ {service.rating}
+                  <span className="text-gray-500">
+                    Service status
+                  </span>
+
+                  <span className="font-semibold capitalize text-green-700">
+                    ✓ {service.status}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Workers</span>
+                  <span className="text-gray-500">
+                    Worker network
+                  </span>
+
                   <span className="font-semibold">
-                    {service.workers} available
+                    Cooperative workers
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Location</span>
-                  <span className="font-semibold">Delhi</span>
+                  <span className="text-gray-500">
+                    Location
+                  </span>
+
+                  <span className="font-semibold">
+                    Delhi
+                  </span>
                 </div>
               </div>
 
@@ -357,7 +328,9 @@ const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
         <div className="mt-7 grid gap-7 lg:grid-cols-2">
           {/* What's Included */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold">What's included</h2>
+            <h2 className="text-xl font-bold">
+              What's included
+            </h2>
 
             <p className="mt-2 text-sm text-gray-500">
               Common tasks covered under this service.
@@ -373,7 +346,9 @@ const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
                     ✓
                   </div>
 
-                  <p className="text-sm text-gray-700">{item}</p>
+                  <p className="text-sm text-gray-700">
+                    {item}
+                  </p>
                 </div>
               ))}
             </div>
@@ -381,10 +356,13 @@ const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
 
           {/* Service Areas */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold">Service availability</h2>
+            <h2 className="text-xl font-bold">
+              Service availability
+            </h2>
 
             <p className="mt-2 text-sm text-gray-500">
-              Verified cooperative workers currently serve these areas.
+              Verified cooperative workers currently serve these
+              areas.
             </p>
 
             <div className="mt-5 flex flex-wrap gap-3">
@@ -408,8 +386,8 @@ const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
                   </p>
 
                   <p className="mt-1 text-xs leading-5 text-green-700">
-                    Workers listed on Sahakar Seva are verified through
-                    the cooperative platform.
+                    Workers listed on Sahakar Seva are verified
+                    through the cooperative platform.
                   </p>
                 </div>
               </div>
@@ -429,28 +407,33 @@ const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
             </h2>
 
             <p className="mt-2 text-sm leading-6 text-gray-600">
-              Sahakar Seva connects customers with trusted cooperative
-              workers while keeping the service experience simple and
-              transparent.
+              Sahakar Seva connects customers with trusted
+              cooperative workers while keeping the service
+              experience simple and transparent.
             </p>
           </div>
 
           <div className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-xl bg-gray-50 p-5">
               <div className="text-2xl">✓</div>
+
               <h3 className="mt-3 font-semibold">
                 Verified workers
               </h3>
+
               <p className="mt-1 text-sm leading-5 text-gray-500">
-                Connect with workers verified through the cooperative.
+                Connect with workers verified through the
+                cooperative.
               </p>
             </div>
 
             <div className="rounded-xl bg-gray-50 p-5">
               <div className="text-2xl">₹</div>
+
               <h3 className="mt-3 font-semibold">
                 Transparent pricing
               </h3>
+
               <p className="mt-1 text-sm leading-5 text-gray-500">
                 See starting prices before choosing your service.
               </p>
@@ -458,9 +441,11 @@ const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
 
             <div className="rounded-xl bg-gray-50 p-5">
               <div className="text-2xl">⭐</div>
+
               <h3 className="mt-3 font-semibold">
                 Trusted ratings
               </h3>
+
               <p className="mt-1 text-sm leading-5 text-gray-500">
                 Compare ratings and reviews from other customers.
               </p>
@@ -468,9 +453,11 @@ const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
 
             <div className="rounded-xl bg-gray-50 p-5">
               <div className="text-2xl">🤝</div>
+
               <h3 className="mt-3 font-semibold">
                 Cooperative model
               </h3>
+
               <p className="mt-1 text-sm leading-5 text-gray-500">
                 Support a community-driven service ecosystem.
               </p>
@@ -504,7 +491,9 @@ const areas = ["Delhi", "Noida", "Gurugram", "Ghaziabad"];
       {/* Footer */}
       <footer className="mt-4 border-t border-gray-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-6 text-sm text-gray-500 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
-          <p>© 2026 Sahakar Seva. Cooperative services for everyone.</p>
+          <p>
+            © 2026 Sahakar Seva. Cooperative services for everyone.
+          </p>
 
           <div className="flex gap-5">
             <span className="cursor-pointer hover:text-green-700">

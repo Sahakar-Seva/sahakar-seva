@@ -35,6 +35,8 @@ const defaultBookings: Booking[] = [
     amount: 699,
     status: "Completed",
     phone: "+91 99XXXXXX67",
+    worker: "Rahul Sharma",
+    workerId: "1",
   },
   {
     id: "SS-2026-00112",
@@ -46,6 +48,8 @@ const defaultBookings: Booking[] = [
     amount: 299,
     status: "Completed",
     phone: "+91 96XXXXXX34",
+    worker: "Rahul Sharma",
+    workerId: "1",
   },
   {
     id: "SS-2026-00105",
@@ -57,6 +61,8 @@ const defaultBookings: Booking[] = [
     amount: 299,
     status: "Cancelled",
     phone: "+91 95XXXXXX89",
+    worker: "Rahul Sharma",
+    workerId: "1",
   },
 ];
 
@@ -74,81 +80,188 @@ export default function WorkerBookingsPage() {
 
   const [activeTab, setActiveTab] = useState("All");
 
-  /*
-   * Load bookings created by the customer.
-   */
+  const [currentWorkerId, setCurrentWorkerId] =
+    useState("1");
+
   useEffect(() => {
-    const storedBookings = localStorage.getItem(
-      "sahakar-seva-bookings"
-    );
-
-    if (!storedBookings) {
-      return;
-    }
-
-    try {
-      const customerBookings: Booking[] =
-        JSON.parse(storedBookings);
-
-      /*
-       * Only show bookings assigned to this worker.
-       * Rahul Sharma = workerId "1"
-       */
-      const workerBookings = customerBookings.filter(
-        (booking) =>
-          !booking.workerId || booking.workerId === "1"
+    const loadBookings = () => {
+      const params = new URLSearchParams(
+        window.location.search
       );
 
-      setBookings((currentBookings) => {
-        const combined = [...currentBookings];
+      const workerId =
+        params.get("worker") || "1";
 
-        workerBookings.forEach((newBooking) => {
-          const existingIndex = combined.findIndex(
-            (booking) => booking.id === newBooking.id
+      setCurrentWorkerId(workerId);
+
+      const storedBookings =
+        localStorage.getItem(
+          "sahakar-seva-bookings"
+        );
+
+      if (!storedBookings) {
+        setBookings(defaultBookings);
+        return;
+      }
+
+      try {
+        const customerBookings: Booking[] =
+          JSON.parse(storedBookings);
+
+        /*
+         * Only show bookings assigned to
+         * the currently selected worker.
+         */
+        const workerBookings =
+          customerBookings.filter(
+            (booking) =>
+              booking.workerId === workerId
           );
 
-          if (existingIndex >= 0) {
-            combined[existingIndex] = newBooking;
-          } else {
-            combined.unshift(newBooking);
-          }
-        });
+        /*
+         * Keep demo bookings only when
+         * they belong to this worker.
+         */
+        const demoWorkerBookings =
+          defaultBookings.filter(
+            (booking) =>
+              booking.workerId === workerId
+          );
 
-        return combined;
-      });
-    } catch (error) {
-      console.error("Unable to load bookings:", error);
-    }
+        /*
+         * Combine demo bookings and
+         * real localStorage bookings.
+         */
+        const combined = [
+          ...workerBookings,
+          ...demoWorkerBookings,
+        ];
+
+        /*
+         * Remove duplicate booking IDs.
+         */
+        const uniqueBookings =
+          combined.filter(
+            (booking, index, array) =>
+              array.findIndex(
+                (item) =>
+                  item.id === booking.id
+              ) === index
+          );
+
+        setBookings(uniqueBookings);
+      } catch (error) {
+        console.error(
+          "Unable to load bookings:",
+          error
+        );
+
+        setBookings(
+          defaultBookings.filter(
+            (booking) =>
+              booking.workerId === workerId
+          )
+        );
+      }
+    };
+
+    loadBookings();
+
+    window.addEventListener(
+      "focus",
+      loadBookings
+    );
+
+    return () => {
+      window.removeEventListener(
+        "focus",
+        loadBookings
+      );
+    };
   }, []);
 
   /*
    * Save updated booking list.
    */
-  const saveBookings = (updatedBookings: Booking[]) => {
+  const saveBookings = (
+    updatedBookings: Booking[]
+  ) => {
     setBookings(updatedBookings);
 
-    const customerBookings = updatedBookings.filter(
-      (booking) => booking.workerId === "1"
-    );
+    try {
+      const storedData =
+        localStorage.getItem(
+          "sahakar-seva-bookings"
+        );
 
-    localStorage.setItem(
-      "sahakar-seva-bookings",
-      JSON.stringify(customerBookings)
-    );
+      const allBookings: Booking[] =
+        storedData
+          ? JSON.parse(storedData)
+          : [];
+
+      const updatedAllBookings =
+        allBookings.map((storedBooking) => {
+          const updatedBooking =
+            updatedBookings.find(
+              (booking) =>
+                booking.id ===
+                storedBooking.id
+            );
+
+          return updatedBooking
+            ? updatedBooking
+            : storedBooking;
+        });
+
+      /*
+       * Add bookings that weren't already
+       * present in localStorage.
+       */
+      updatedBookings.forEach(
+        (updatedBooking) => {
+          const alreadyExists =
+            updatedAllBookings.some(
+              (booking) =>
+                booking.id ===
+                updatedBooking.id
+            );
+
+          if (!alreadyExists) {
+            updatedAllBookings.push(
+              updatedBooking
+            );
+          }
+        }
+      );
+
+      localStorage.setItem(
+        "sahakar-seva-bookings",
+        JSON.stringify(
+          updatedAllBookings
+        )
+      );
+    } catch (error) {
+      console.error(
+        "Unable to save bookings:",
+        error
+      );
+    }
   };
 
   /*
    * Accept booking
    */
   const acceptBooking = (id: string) => {
-    const updatedBookings = bookings.map((booking) =>
-      booking.id === id
-        ? {
-            ...booking,
-            status: "Upcoming" as BookingStatus,
-          }
-        : booking
-    );
+    const updatedBookings =
+      bookings.map((booking) =>
+        booking.id === id
+          ? {
+              ...booking,
+              status:
+                "Upcoming" as BookingStatus,
+            }
+          : booking
+      );
 
     saveBookings(updatedBookings);
   };
@@ -157,14 +270,16 @@ export default function WorkerBookingsPage() {
    * Reject booking
    */
   const rejectBooking = (id: string) => {
-    const updatedBookings = bookings.map((booking) =>
-      booking.id === id
-        ? {
-            ...booking,
-            status: "Cancelled" as BookingStatus,
-          }
-        : booking
-    );
+    const updatedBookings =
+      bookings.map((booking) =>
+        booking.id === id
+          ? {
+              ...booking,
+              status:
+                "Cancelled" as BookingStatus,
+            }
+          : booking
+      );
 
     saveBookings(updatedBookings);
   };
@@ -173,14 +288,16 @@ export default function WorkerBookingsPage() {
    * Complete service
    */
   const completeBooking = (id: string) => {
-    const updatedBookings = bookings.map((booking) =>
-      booking.id === id
-        ? {
-            ...booking,
-            status: "Completed" as BookingStatus,
-          }
-        : booking
-    );
+    const updatedBookings =
+      bookings.map((booking) =>
+        booking.id === id
+          ? {
+              ...booking,
+              status:
+                "Completed" as BookingStatus,
+            }
+          : booking
+      );
 
     saveBookings(updatedBookings);
   };
@@ -189,30 +306,41 @@ export default function WorkerBookingsPage() {
     activeTab === "All"
       ? bookings
       : bookings.filter(
-          (booking) => booking.status === activeTab
+          (booking) =>
+            booking.status === activeTab
         );
 
   const newCount = bookings.filter(
-    (booking) => booking.status === "New"
+    (booking) =>
+      booking.status === "New"
   ).length;
 
   const upcomingCount = bookings.filter(
-    (booking) => booking.status === "Upcoming"
+    (booking) =>
+      booking.status === "Upcoming"
   ).length;
 
   const completedCount = bookings.filter(
-    (booking) => booking.status === "Completed"
+    (booking) =>
+      booking.status === "Completed"
   ).length;
 
   const cancelledCount = bookings.filter(
-    (booking) => booking.status === "Cancelled"
+    (booking) =>
+      booking.status === "Cancelled"
   ).length;
 
-  const statusStyles: Record<BookingStatus, string> = {
+  const statusStyles: Record<
+    BookingStatus,
+    string
+  > = {
     New: "bg-blue-50 text-blue-700",
-    Upcoming: "bg-green-50 text-green-700",
-    Completed: "bg-gray-100 text-gray-700",
-    Cancelled: "bg-red-50 text-red-700",
+    Upcoming:
+      "bg-green-50 text-green-700",
+    Completed:
+      "bg-gray-100 text-gray-700",
+    Cancelled:
+      "bg-red-50 text-red-700",
   };
 
   return (
@@ -221,7 +349,7 @@ export default function WorkerBookingsPage() {
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link
-            href="/worker"
+            href="/worker/dashboard"
             className="text-2xl font-bold text-green-700"
           >
             Sahakar Seva
@@ -229,7 +357,7 @@ export default function WorkerBookingsPage() {
 
           <div className="flex items-center gap-4">
             <Link
-              href="/worker"
+              href="/worker/dashboard"
               className="hidden text-sm text-gray-600 hover:text-green-700 md:block"
             >
               Dashboard
@@ -268,7 +396,12 @@ export default function WorkerBookingsPage() {
           </h1>
 
           <p className="mt-2 text-gray-600">
-            Manage your service requests and upcoming work.
+            Manage your service requests and
+            upcoming work.
+          </p>
+
+          <p className="mt-1 text-xs text-gray-400">
+            Worker ID: {currentWorkerId}
           </p>
         </div>
 
@@ -340,13 +473,16 @@ export default function WorkerBookingsPage() {
                   ? bookings.length
                   : bookings.filter(
                       (booking) =>
-                        booking.status === tab
+                        booking.status ===
+                        tab
                     ).length;
 
               return (
                 <button
                   key={tab}
-                  onClick={() => setActiveTab(tab)}
+                  onClick={() =>
+                    setActiveTab(tab)
+                  }
                   className={`rounded-lg px-5 py-2.5 text-sm font-medium transition ${
                     activeTab === tab
                       ? "bg-green-700 text-white"
@@ -372,146 +508,165 @@ export default function WorkerBookingsPage() {
 
         {/* Booking cards */}
         <div className="space-y-4">
-          {filteredBookings.map((booking) => (
-            <div
-              key={booking.id}
-              className="rounded-2xl border bg-white p-5 shadow-sm"
-            >
-              {/* Top */}
-              <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
-                <div className="flex gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-100 font-semibold text-green-700">
-                    {booking.customer
-                      .split(" ")
-                      .map((name) => name[0])
-                      .join("")}
-                  </div>
-
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-lg font-semibold text-gray-900">
-                        {booking.service}
-                      </h2>
-
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                          statusStyles[booking.status]
-                        }`}
-                      >
-                        {booking.status}
-                      </span>
+          {filteredBookings.map(
+            (booking) => (
+              <div
+                key={booking.id}
+                className="rounded-2xl border bg-white p-5 shadow-sm"
+              >
+                {/* Top */}
+                <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+                  <div className="flex gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-100 font-semibold text-green-700">
+                      {booking.customer
+                        .split(" ")
+                        .map(
+                          (name) =>
+                            name[0]
+                        )
+                        .join("")}
                     </div>
 
-                    <p className="mt-1 text-sm text-gray-600">
-                      Booking ID: {booking.id}
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="text-lg font-semibold text-gray-900">
+                          {booking.service}
+                        </h2>
+
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-medium ${
+                            statusStyles[
+                              booking.status
+                            ]
+                          }`}
+                        >
+                          {booking.status}
+                        </span>
+                      </div>
+
+                      <p className="mt-1 text-sm text-gray-600">
+                        Booking ID:{" "}
+                        {booking.id}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-left md:text-right">
+                    <p className="text-sm text-gray-500">
+                      Service Amount
+                    </p>
+
+                    <p className="text-xl font-bold text-gray-900">
+                      ₹{booking.amount}
                     </p>
                   </div>
                 </div>
 
-                <div className="text-left md:text-right">
-                  <p className="text-sm text-gray-500">
-                    Service Amount
-                  </p>
+                {/* Details */}
+                <div className="mt-5 grid gap-4 border-t pt-5 md:grid-cols-3">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                      Customer
+                    </p>
 
-                  <p className="text-xl font-bold text-gray-900">
-                    ₹{booking.amount}
-                  </p>
+                    <p className="mt-1 font-medium text-gray-800">
+                      {booking.customer}
+                    </p>
+
+                    <p className="mt-1 text-sm text-gray-500">
+                      {booking.phone}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                      Date & Time
+                    </p>
+
+                    <p className="mt-1 font-medium text-gray-800">
+                      {booking.date}
+                    </p>
+
+                    <p className="mt-1 text-sm text-gray-500">
+                      {booking.time}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                      Service Location
+                    </p>
+
+                    <p className="mt-1 font-medium text-gray-800">
+                      {booking.location}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              {/* Details */}
-              <div className="mt-5 grid gap-4 border-t pt-5 md:grid-cols-3">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                    Customer
-                  </p>
+                {/* Actions */}
+                <div className="mt-5 flex flex-wrap gap-3 border-t pt-5">
+                  {booking.status ===
+                    "New" && (
+                    <>
+                      <button
+                        onClick={() =>
+                          acceptBooking(
+                            booking.id
+                          )
+                        }
+                        className="rounded-lg bg-green-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-800"
+                      >
+                        Accept Booking
+                      </button>
 
-                  <p className="mt-1 font-medium text-gray-800">
-                    {booking.customer}
-                  </p>
+                      <button
+                        onClick={() =>
+                          rejectBooking(
+                            booking.id
+                          )
+                        }
+                        className="rounded-lg border border-red-200 px-5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50"
+                      >
+                        Reject
+                      </button>
+                    </>
+                  )}
 
-                  <p className="mt-1 text-sm text-gray-500">
-                    {booking.phone}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                    Date & Time
-                  </p>
-
-                  <p className="mt-1 font-medium text-gray-800">
-                    {booking.date}
-                  </p>
-
-                  <p className="mt-1 text-sm text-gray-500">
-                    {booking.time}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                    Service Location
-                  </p>
-
-                  <p className="mt-1 font-medium text-gray-800">
-                    {booking.location}
-                  </p>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="mt-5 flex flex-wrap gap-3 border-t pt-5">
-                {booking.status === "New" && (
-                  <>
+                  {booking.status ===
+                    "Upcoming" && (
                     <button
                       onClick={() =>
-                        acceptBooking(booking.id)
+                        completeBooking(
+                          booking.id
+                        )
                       }
                       className="rounded-lg bg-green-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-800"
                     >
-                      Accept Booking
+                      Mark Service Complete
                     </button>
+                  )}
 
-                    <button
-                      onClick={() =>
-                        rejectBooking(booking.id)
-                      }
-                      className="rounded-lg border border-red-200 px-5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50"
-                    >
-                      Reject
-                    </button>
-                  </>
-                )}
+                  {booking.status ===
+                    "Completed" && (
+                    <span className="rounded-lg bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-600">
+                      Service Completed
+                    </span>
+                  )}
 
-                {booking.status === "Upcoming" && (
-                  <button
-                    onClick={() =>
-                      completeBooking(booking.id)
-                    }
-                    className="rounded-lg bg-green-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-800"
-                  >
-                    Mark Service Complete
-                  </button>
-                )}
-
-                {booking.status === "Completed" && (
-                  <span className="rounded-lg bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-600">
-                    Service Completed
-                  </span>
-                )}
-
-                {booking.status === "Cancelled" && (
-                  <span className="rounded-lg bg-red-50 px-5 py-2.5 text-sm font-medium text-red-600">
-                    Booking Cancelled
-                  </span>
-                )}
+                  {booking.status ===
+                    "Cancelled" && (
+                    <span className="rounded-lg bg-red-50 px-5 py-2.5 text-sm font-medium text-red-600">
+                      Booking Cancelled
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          )}
 
           {/* Empty state */}
-          {filteredBookings.length === 0 && (
+          {filteredBookings.length ===
+            0 && (
             <div className="rounded-2xl border bg-white px-6 py-16 text-center">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-2xl">
                 📋
@@ -522,7 +677,8 @@ export default function WorkerBookingsPage() {
               </h3>
 
               <p className="mt-2 text-sm text-gray-500">
-                There are no bookings in this category right now.
+                There are no bookings in this
+                category right now.
               </p>
             </div>
           )}
@@ -531,7 +687,9 @@ export default function WorkerBookingsPage() {
         {/* Info */}
         <div className="mt-8 rounded-2xl border border-green-100 bg-green-50 p-5">
           <div className="flex gap-4">
-            <div className="text-2xl">🤝</div>
+            <div className="text-2xl">
+              🤝
+            </div>
 
             <div>
               <h3 className="font-semibold text-green-900">
@@ -539,9 +697,11 @@ export default function WorkerBookingsPage() {
               </h3>
 
               <p className="mt-1 text-sm leading-6 text-green-800">
-                Accept requests promptly and complete services only
-                after the work has been successfully finished.
-                Booking status is currently synced using local
+                Accept requests promptly and
+                complete services only after the
+                work has been successfully
+                finished. Booking status is
+                currently synced using local
                 browser storage.
               </p>
             </div>
@@ -552,7 +712,8 @@ export default function WorkerBookingsPage() {
       {/* Footer */}
       <footer className="mt-12 border-t bg-white">
         <div className="mx-auto max-w-7xl px-6 py-6 text-center text-sm text-gray-500">
-          © 2026 Sahakar Seva · Empowering cooperative workers
+          © 2026 Sahakar Seva · Empowering
+          cooperative workers
         </div>
       </footer>
     </main>
