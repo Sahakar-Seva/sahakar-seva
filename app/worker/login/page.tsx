@@ -10,6 +10,12 @@ export default function WorkerLogin() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const fillDemoCredentials = () => {
+    setEmail("plumber_1789328928622@test.com");
+    setPassword("WorkerSecurePass123!");
+    setError("");
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -132,6 +138,33 @@ export default function WorkerLogin() {
                 />
               </div>
 
+              {/* Demo Credentials */}
+              <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-blue-800">
+                      Demo Worker Account
+                    </p>
+
+                    <p className="mt-1 text-xs text-blue-700">
+                      Email: plumber_1789328928622@test.com
+                    </p>
+
+                    <p className="text-xs text-blue-700">
+                      Password: WorkerSecurePass123!
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={fillDemoCredentials}
+                    className="shrink-0 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700"
+                  >
+                    Use Demo
+                  </button>
+                </div>
+              </div>
+
               {/* Error */}
               {error && (
                 <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
@@ -151,7 +184,7 @@ export default function WorkerLogin() {
 
             {/* Firebase Auth Info */}
             <div className="mt-6 rounded-lg bg-blue-50 p-4 text-center text-sm text-blue-700">
-              Use your registered worker email and password.
+              Demo credentials are provided for prototype evaluation.
             </div>
 
             {/* Switch Role */}

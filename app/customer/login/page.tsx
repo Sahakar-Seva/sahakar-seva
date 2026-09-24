@@ -41,6 +41,13 @@ export default function CustomerLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const fillDemoCredentials = () => {
+    setIsLogin(true);
+    setEmail("customer1@test.com");
+    setPassword("CustTest123");
+    setError("");
+  };
+
   const handleAuth = async () => {
     setError("");
 
@@ -222,6 +229,7 @@ export default function CustomerLoginPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Enter your full name"
+                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
           )}
@@ -281,7 +289,7 @@ export default function CustomerLoginPage() {
           </div>
 
           {isLogin && (
-            <div className="mb-6 text-right">
+            <div className="mb-4 text-right">
               <button
                 type="button"
                 onClick={handleForgotPassword}
@@ -289,6 +297,34 @@ export default function CustomerLoginPage() {
               >
                 Forgot password?
               </button>
+            </div>
+          )}
+
+          {isLogin && (
+            <div className="mb-6 rounded-xl border border-green-200 bg-green-50 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-green-800">
+                    Demo Customer Account
+                  </p>
+
+                  <p className="mt-1 text-xs text-green-700">
+                    Email: customer1@test.com
+                  </p>
+
+                  <p className="text-xs text-green-700">
+                    Password: CustTest123
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={fillDemoCredentials}
+                  className="shrink-0 rounded-lg bg-green-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-green-800"
+                >
+                  Use Demo
+                </button>
+              </div>
             </div>
           )}
 

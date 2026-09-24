@@ -10,6 +10,12 @@ export default function AdminLogin() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const fillDemoCredentials = () => {
+    setEmail("admin@test.com");
+    setPassword("AdminSecurePassword123!");
+    setError("");
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -132,6 +138,33 @@ export default function AdminLogin() {
                 />
               </div>
 
+              {/* Demo Credentials */}
+              <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-purple-800">
+                      Demo Admin Account
+                    </p>
+
+                    <p className="mt-1 text-xs text-purple-700">
+                      Email: admin@test.com
+                    </p>
+
+                    <p className="text-xs text-purple-700">
+                      Password: AdminSecurePassword123!
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={fillDemoCredentials}
+                    className="shrink-0 rounded-lg bg-purple-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-purple-700"
+                  >
+                    Use Demo
+                  </button>
+                </div>
+              </div>
+
               {/* Error */}
               {error && (
                 <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
@@ -151,7 +184,7 @@ export default function AdminLogin() {
 
             {/* Info */}
             <div className="mt-6 rounded-lg bg-purple-50 p-4 text-center text-sm text-purple-700">
-              Admin access is restricted to authorized accounts.
+              Demo credentials are provided for prototype evaluation.
             </div>
 
             {/* Switch Role */}
